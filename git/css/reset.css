@@ -1,0 +1,14 @@
+html, body, header, footer, section, article, nav, div, img, form, input, textarea, select, optgroup, option, label, table, caption, thead, tbody, tfoot, tr, th, td, dl, dt, dd, ol, ul, li, pre, p, h1, h2, h3, h4, h5, h6, span, br, hr, a {margin:0; padding:0; border:0;}
+table {width:100%; border-collapse:separate; border-spacing:0 1px; vertical-align:middle; cursor:default;}
+ol, ul {list-style:none;}
+h1, h2, h3, h4, h5, h6 {font-size:100%;}
+a {text-decoration:none; outline:none;}
+:root, :root.default {
+--body-background:#ffffff;
+}
+:root.light {
+
+}
+:root.dark {
+
+}
