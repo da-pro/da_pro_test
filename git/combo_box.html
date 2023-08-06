@@ -668,13 +668,13 @@ let counter = 0;
 					{
 						pointer_position = this.drop_down.length;
 					}
-					else if (this.drop_down.pointer === this.drop_down.length)
+					else if (this.drop_down.pointer === 1)
 					{
-						pointer_position = this.drop_down.length - 1;
+						pointer_position = this.drop_down.length;
 					}
 					else
 					{
-						pointer_position = (this.drop_down.pointer - 1 > 0) ? this.drop_down.pointer - 1 : this.drop_down.length;
+						pointer_position = this.drop_down.pointer - 1;
 					}
 				}
 
