@@ -13,7 +13,7 @@ ol, ul {list-style:none;}
 h1, h2, h3, h4, h5, h6 {font-size:100%;}
 a {text-decoration:none; outline:none;}
 /* CUSTOM */
-body {margin-top:200px;}
+body {margin-top:200px; margin-bottom:800px;}
 form {width:320px; margin:20px auto 0;}
 input {width:100%; height:30px; margin:0 0 20px; padding:0 35px 0 5px; color:#333333; background:#bbeeff; font:14px 'Open Sans', sans-serif; border:1px solid #66ddff; border-radius:3px; box-sizing:border-box; display:block;}
 input:focus {background:#ffffff; outline:none;}
@@ -22,23 +22,25 @@ input:focus:hover {cursor:auto;}
 div.combo-box {position:relative;}
 div.combo-box>span {width:30px; height:30px; position:absolute; right:0; background:#bbeeff; border-radius:0 3px 3px 0; border:1px solid #66ddff;box-sizing:border-box;}
 div.combo-box>span:hover {cursor:pointer;}
-div.combo-box>span>i {border-style:solid; border-color:#242424; border-width:0 2px 2px 0; display:inline-block; padding:3px; position:absolute; top:9px; right:10px; transform: rotate(45deg); -webkit-transform: rotate(45deg);}
+div.combo-box>span>i {border-style:solid; border-color:#242424; display:inline-block; padding:3px; position:absolute; right:10px;  transform: rotate(45deg); -webkit-transform: rotate(45deg);}
+div.combo-box>span>i.down {top:9px; border-width:0 2px 2px 0;}
+div.combo-box>span>i.up {top:13px; border-width:2px 0 0 2px;}
 input + ul {width:100%; height:auto; max-height:290px; padding:0; background:#cccccc; position:absolute; border-radius:3px; overflow-x:hidden; overflow-y:auto; display:grid; grid-template-columns:100%; row-gap:1px; border:1px solid #cccccc;box-sizing:border-box; z-index:1000;}
 input + ul.down {top:30px;}
 input + ul.up {bottom:30px;}
-ul > li {width:100%; padding:0 0 0 4px; color:#242424; background:#f0f0f0; font:14px/25px arial, sans-serif; white-space:nowrap; box-sizing:border-box;}
+ul > li {width:100%; padding:0 0 0 5px; color:#242424; background:#f0f0f0; font:14px/25px arial, sans-serif; white-space:nowrap; box-sizing:border-box;}
 ul.combo-box > li.custom {background:#00ffff; cursor:not-allowed;}
 ul.combo-box > li>b {font-weight:bold;}
 ul.combo-box > li.header {height:28px; position:sticky; top:0; background:#ffffff; font-size:11px; line-height:28px; font-weight:bold; cursor:default;}
 ul.combo-box > li.warning {padding:0; color:#ff3333; font-size:12px; font-weight:bold; text-align:center;}
 ul.combo-box > li.highlight {background:#fafafa; }
-ul.combo-box>li.optgroup {padding:0 0 0 14px; color:#ffffff; background:#666666; font-weight:bold; cursor:default;}
+ul.combo-box>li.optgroup {padding:0 0 0 15px; color:#ffffff; background:#666666; font-weight:bold; cursor:default;}
 ul.combo-box>li:not(.header):not(.optgroup):hover, ul.combo-box>li.active {background:#cccccc; cursor:pointer;}
 </style>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <form>
 	<div class="combo-box" style="position:relative; width:100%;">
-		<span title="Покажи Автомобили"><i></i></span>
+		<span title="Покажи Автомобили"><i class="down"></i></span>
 		<input type="text" spellcheck="false" id="js-combo-box-cars">
 		
 	<ul class="combo-box"  style="display:none">
@@ -65,7 +67,7 @@ ul.combo-box>li:not(.header):not(.optgroup):hover, ul.combo-box>li.active {backg
 	<select id="js-combo-box-cars" style="display:none">
 		<option value="">избери</option>
 		<optgroup label="German">
-			<option value="100">TestovaTestovaTestovaTestova</option>
+			<option value="100">TestovaTestova TestovaTestova</option>
 			<option value="1">Audi</option>
 			<option value="2">BMW XT series</option>
 			<option value="7">BMW bGT</option>
@@ -80,12 +82,13 @@ ul.combo-box>li:not(.header):not(.optgroup):hover, ul.combo-box>li.active {backg
 		</optgroup>
 		<optgroup label="French">
 		<option value="11">Citroen</option>
+		<option value="14400">Testova</option>
 		<option value="12">Peugeot</option>
 		<option value="13">Renault</option>
 		</optgroup>
 	</select>
 	<div class="combo-box" style="position:relative; width:100%;">
-		<span title="Покажи Езици"><i></i></span>
+		<span title="Покажи Езици"><i class="down"></i></span>
 	<input type="text" id="js-combo-box-languages">
 	</div>
 		<select id="js-combo-box-languages" style="display:none">
@@ -109,15 +112,13 @@ ul.combo-box>li:not(.header):not(.optgroup):hover, ul.combo-box>li.active {backg
 </form>
 <script>
 var combo_box = {
-	selector_scheme : 'js-combo-box',
+	selector_scheme : 'js-combo-box',// prefix
 	is_data_ready : false,
 	data : {},
 	input_fields : [],
 	input_characters : '',
 	focused_input : '',
-	custom_config : {},
 	config : {
-		is_value_numeric : false,
 		are_mathematics_symbols_allowed : false,
 		are_punctuation_symbols_allowed : false,
 		minimum_input_length : 1,
@@ -129,30 +130,34 @@ var combo_box = {
 		active_list_item : 'active',
 		json : null
 	},
+	custom_config : {},
 	strings : {
-		///////
+		found_message : '',
+		matched_message : '',
+		search_message : '',
+		empty_result : ''
 	},
-	test : [],
 	/*
 	config : {
-		initial : {
-			is_value_numeric : false,
-			are_mathematics_symbols_allowed : false,
-			are_punctuation_symbols_allowed : false,
-			minimum_input_length : 3,
-			search_message : '\u043d\u0430\u043f\u0438\u0448\u0435\u0442\u0435 \u043c\u0438\u043d\u0438\u043c\u0443\u043c % \u0441\u0438\u043c\u0432\u043e\u043b\u0430',
-			empty_result : '\u043d\u044f\u043c\u0430 \u0440\u0435\u0437\u0443\u043b\u0442\u0430\u0442',
-			active_drop_down_list : '',
-			active_list_item : 'active',
-			json : null
-		},
+		initial : {},
 		inherit : {},
+	},
+	staging : {
+		id : '',
+		value : '',
+		input : [],// [input#js-combo-box, etc]
+		list : [],// [ul#js-combo-box, etc]
 	},
 	press_event : {
 		up : false,
 		down : false,
 		enter : false
-	}
+	},
+	list : {
+		html : '',// selector
+		step : 0,// pointer
+		size : 0// length
+	},
 	*/
 	events : {
 		press_up_arrow : false,
@@ -161,28 +166,20 @@ var combo_box = {
 	},
 	drop_down : {
 		selector : '',
-		length : 0,
+		length : 0,// ???
 		pointer : 0
-	},
-	init : function()
-	{
-		this.construct();
 	},
 	construct : function(object)
 	{
 		if (Object.keys(object).length)
 		{
-			//console.log(Object.keys(object));
-		}
-		if (!$.isEmptyObject(object))
-		{
 			let css_class_name_pattern = new RegExp('^[a-z_]{1}[a-z0-9-_]+$', 'i');
 
-			for (let i in object)
+			for (let i in object)// let id
 			{
 				if (object.hasOwnProperty(i))
 				{
-					if (i.indexOf(this.selector_scheme) !== 0)
+					if (i.indexOf(this.selector_scheme) !== 0 || typeof document.getElementsByTagName('input')[i] === undefined)
 					{
 						continue;
 					}
@@ -192,16 +189,8 @@ var combo_box = {
 							is_select : false
 						};
 					
-					this.input_fields.push(i);
-					/* remove obsolete
-					if (object[i].hasOwnProperty('is_value_numeric'))
-					{
-						if (typeof object[i].is_value_numeric === 'boolean')
-						{
-							this.custom_config[i].is_value_numeric = object[i].is_value_numeric;
-						}
-					}
-					*/
+					this.input_fields.push(`input#${i}`);
+
 					if (object[i].hasOwnProperty('are_mathematics_symbols_allowed'))
 					{
 						if (typeof object[i].are_mathematics_symbols_allowed === 'boolean')
@@ -240,7 +229,7 @@ var combo_box = {
 						}
 					}
 					
-					if (object[i].hasOwnProperty('active_list_item'))
+					if (object[i].hasOwnProperty('active_list_item'))// check different from header optgroup etc
 					{
 						if (typeof object[i].active_list_item === 'string')
 						{
@@ -253,71 +242,87 @@ var combo_box = {
 					
 					if (object[i].hasOwnProperty('json'))
 					{
-						if (object[i].json.hasOwnProperty('is_data_ready'))// && hasOwnProperty('data');
+						if (object[i].json.hasOwnProperty('is_data_ready') && object[i].json.hasOwnProperty('data'))
 						{
 							if (typeof object[i].json.is_data_ready === 'boolean')
 							{
 								if (object[i].json.is_data_ready)
 								{
-									this.data[i] = this.getOptionsFromJSON(i, object[i].json.data);
+									this.custom_config[i].is_data_ready = true;
+									this.data[i] = this.getOptionsFromJSON(object[i].json.data);
 								}
 								else
 								{
+									
 									this.custom_config[i].is_data_ready = false;
-									this.custom_config[i].data = object[i].json.data;
+									this.custom_config[i].callback = object[i].json.data;
 								}
 							}
 						}
 					}
 					else
 					{
-						var selector = $('select#'+i),
-							options_selector = selector.children();
-							//console.log(options_selector);
+						var selector = $('select#'+i);
 
 						if (selector.length)
 						{
 							selector.hide();
 	
-							this.data[i] = this.getOptionsFromSelect(i, options_selector);//selector.children()
+							this.data[i] = this.getOptionsFromSelect(i, selector.children());
 							
 							this.custom_config[i].is_select = true;
 						}
 					}
 				}
 			}
-			
-			var input_fields_length = this.input_fields.length;
-			
-			if (input_fields_length)
+
+			if (this.input_fields.length)
 			{
-				this.is_data_ready = true;
-				
-				var combo_box_input = [];
-
-				for (let i = 0; i < input_fields_length; ++i)// rewrite with for (let i of this.input_fields)
+				$('div.combo-box').on('click', function(event)
 				{
-					combo_box_input.push('input#'+this.input_fields[i]);
-				}
-
-				$('body').on('focus', combo_box_input.join(','), function(event)
-				{
-					//console.log(event);
-					combo_box.focused_input = $(this).attr('id');
-
-					combo_box.removeDropDownList();
-					
-					if (combo_box.is_data_ready)
+					if (['span', 'i'].includes(event.target.nodeName.toLowerCase()))
 					{
-						//combo_box.setDropDownList(); rework maybe is_data_ready part of config
+						let collapse = $(this).find('span>i').hasClass('up');
+						
+						combo_box.removeDropDownList();
+						
+						let id = $(this).find('input').attr('id');
+						
+						combo_box.input_characters = $('input#'+id).val().trim();
+
+						if (!collapse)
+						{
+							$(this).find('input').trigger('focus');
+							
+							combo_box.is_data_ready = true;
+							combo_box.focused_input = id;
+							
+							combo_box.setDropDownList();
+						}
 					}
+				});
+				
+				$('body').on('focus', this.input_fields.join(','), function()
+				{
+					combo_box.is_data_ready = false;
+					combo_box.focused_input = this.id;
+					combo_box.input_characters = this.value.trim();
+					
+					combo_box.removeDropDownList();
 					
 					if (combo_box.custom_config[combo_box.focused_input].is_select)
 					{
-						combo_box.is_data_ready = true;// true by default for select
-						combo_box.input_characters = $('input#'+combo_box.focused_input).val().trim();
-						combo_box.setDropDownList();
+						combo_box.is_data_ready = true;
 					}
+					else
+					{
+						if (combo_box.custom_config[combo_box.focused_input].hasOwnProperty('is_data_ready'))
+						{
+							combo_box.is_data_ready = true;
+						}
+					}
+					
+					combo_box.setDropDownList();
 				});
 			}
 		}
@@ -327,44 +332,43 @@ var combo_box = {
 			var list_item_text = $(this).text(),
 				list_item_data_value = $(this).data('value');
 
+			// populate with data-combo-box values if exist
 			$('input#'+combo_box.focused_input).val(list_item_text).attr({'value' : list_item_text, 'data-value' : list_item_data_value});
 			$('input#'+combo_box.focused_input).data('value', list_item_data_value).trigger('change');
 
 			combo_box.removeDropDownList();
 		});
 	},
-	getOptionsFromJSON : function(selector_id, data)
+	getOptionsFromJSON : function(data)
 	{
 		var i,
-			key_value_pair = {},
-			is_value_numeric = this.config.is_value_numeric,
+			key_value_pair = {},// data
 			counter = 0;
-
-		if (this.custom_config[selector_id].hasOwnProperty('is_value_numeric'))
-		{
-			is_value_numeric = this.custom_config[selector_id].is_value_numeric;
-		}
 
 		for (i in data)
 		{
 			++counter;
+			
 			key_value_pair[counter] = {
 				group : '',
-				value : data[i].id,
+				value : data[i].key,
 				text : data[i].value
 			};
-			/*
-			if (is_value_numeric)
+			
+			let more = {};
+			
+			for (let ii in data[i])
 			{
-				if ($.isNumeric(i))
+				if (!['key', 'value'].includes(ii))
 				{
-					key_value_pair[i] = data[i];
+					more[ii] = data[i][ii];
 				}
 			}
-			else
+			
+			if (Object.keys(more).length)
 			{
-				key_value_pair[i] = data[i];
-			}*/
+				key_value_pair[counter].more = more;
+			}
 		}
 
 		return key_value_pair;
@@ -379,7 +383,7 @@ var combo_box = {
 			{
 				clearInterval(set_interval);
 
-				combo_box.data[combo_box.focused_input] = combo_box.getOptionsFromJSON(combo_box.focused_input, object.data);
+				combo_box.data[combo_box.focused_input] = combo_box.getOptionsFromJSON(object.data);
 
 				combo_box.is_data_ready = true;
 			}
@@ -387,16 +391,9 @@ var combo_box = {
 	},
 	getOptionsFromSelect : function(selector_id, options_selector)
 	{
-		var key_value_pair = {},
-			is_value_numeric = this.config.is_value_numeric;
-
-		if (this.custom_config[selector_id].hasOwnProperty('is_value_numeric'))
-		{
-			is_value_numeric = this.custom_config[selector_id].is_value_numeric;
-		}
+		var key_value_pair = {};// data
+		let counter = 0;
 		
-let counter = 0;
-
 		options_selector.each(function()
 		{
 			if ($(this)[0].tagName.toLowerCase() === 'optgroup')
@@ -419,38 +416,58 @@ let counter = 0;
 				++counter;
 				
 				key_value_pair[counter] = {
-							group : '',
-							value : $(this).val(),
-							text : $(this).text()
-						};
+						group : '',
+						value : $(this).val(),
+						text : $(this).text()
+					};
 			}
-			/*
-			var value = $(this).val();
-
-			if (is_value_numeric)
-			{
-				if ($.isNumeric(value))
-				{
-					key_value_pair[value] = $(this).text();
-				}
-			}
-			else
-			{
-				key_value_pair[value] = $(this).text();
-			}*/
 		});
-//console.log(key_value_pair);
+
 		return key_value_pair;
 	},
 	setDropDownList : function()
 	{
-		console.log(combo_box.data[combo_box.focused_input]);
-		return;
-		if (this.custom_config[this.focused_input].minimum_input_length > combo_box.input_characters)
+		let minimum_input_length = this.config.minimum_input_length;
+
+		if (this.custom_config[this.focused_input].hasOwnProperty('minimum_input_length'))
 		{
-			//console.log(this.custom_config[this.focused_input].minimum_input_length);
+			minimum_input_length = this.custom_config[this.focused_input].minimum_input_length;
 		}
+
+		let drop_down = $('<ul>').attr({'id' : combo_box.focused_input, 'class' : 'combo-box'}).css('visibility', 'hidden');
 		
+		if (minimum_input_length > combo_box.input_characters && !this.custom_config[this.focused_input].is_select)
+		{
+			let search_message = this.config.search_message.replace('%', minimum_input_length);
+			
+			drop_down.html(`<li class="header warning">${search_message}</li>`);
+					$('input#'+combo_box.focused_input).after(drop_down);
+			combo_box.setOrientation();
+			
+			return;
+		}
+		//
+//console.log(this.custom_config[this.focused_input].minimum_input_length);
+		/*
+function escapeString(string)
+{
+	const escape_characters = '^$?+*.[](){}|\\';
+
+	let escape_string = '';
+
+	for (let i in string)
+	{
+		if ([...escape_characters].includes(string[i]))
+		{
+			escape_string += '\\';
+		}
+
+		escape_string += string[i];
+	}
+
+	return escape_string;
+}
+		*/
 		var set_interval = setInterval(function()
 		{
 			if (combo_box.is_data_ready)
@@ -459,24 +476,14 @@ let counter = 0;
 
 				combo_box.removeDropDownList();
 
-				let window_height = parseInt($(window).height(), 10),
-					element_top = parseInt($(`input#${combo_box.focused_input}`).offset().top, 10) + 30;
-
-				let ul_position = 'down';
-				
-				if (window_height - (element_top - window.scrollY) <= 290)
-				{
-					ul_position = 'up';
-				}
-
 				var i,
 					object = combo_box.data[combo_box.focused_input],
 					match_list_items = {},
 					unmatch_list_items = {},
 					pointer = 0,
 					counter = 0,
-					drop_down = $('<ul>').attr({'id' : combo_box.focused_input, 'class' : `combo-box ${ul_position}`}).hide(),
-					escape_characters = ['?', '*', '+', '[', ']', '(', ')'],
+					drop_down = $('<ul>').attr({'id' : combo_box.focused_input, 'class' : 'combo-box'}).css('visibility', 'hidden'),
+					escape_characters = ['?', '*', '+', '[', ']', '(', ')'],// `^$?+*.[](){}|\`
 					input_characters = (function()
 					{
 						var i,
@@ -501,12 +508,13 @@ let counter = 0;
 					drop_down.addClass(combo_box.custom_config[combo_box.focused_input].active_drop_down_list);
 				}
 				
+				//$('input#'+combo_box.focused_input).focus();
 				$('input#'+combo_box.focused_input).after(drop_down);
-//console.log(object);
+
 				for (i in object)
 				{
 					let group = object[i].group,
-						value = object[i].value,
+						value = String(object[i].value),
 						string = object[i].text;
 					
 					if (!match_list_items.hasOwnProperty(group))
@@ -581,7 +589,6 @@ let counter = 0;
 				{
 					combo_box.drop_down.length = combo_box.custom_config[combo_box.focused_input].is_select ? Object.keys(object).length : counter;
 					combo_box.drop_down.selector = drop_down;
-					
 					let found = combo_box.config.found_message.replace('%', counter),// message for select or from db
 						list_found = `<li class="header">${found}</li>`,
 						list_items = '';
@@ -613,8 +620,15 @@ let counter = 0;
 							}
 						}
 					}
+
+					drop_down.html(list_found+list_items);
 					
-					drop_down.html(list_found+list_items).show();
+					combo_box.setOrientation();
+					
+					if (combo_box.custom_config[combo_box.focused_input].is_select)
+					{
+						$('input#'+combo_box.focused_input).parent().find('span>i').addClass('up');
+					}
 				}
 				else
 				{
@@ -625,7 +639,6 @@ let counter = 0;
 	},
 	stepThroughDropDownList : function()
 	{
-		//console.log(this.drop_down);
 		if (this.drop_down.length)
 		{
 			var active_list_item = this.config.active_list_item;
@@ -638,21 +651,17 @@ let counter = 0;
 			if (this.drop_down.length === 1)
 			{
 				this.drop_down.pointer = 1;
-				this.drop_down.selector.find('#pointer-1').addClass(active_list_item);
+				this.drop_down.selector[0].find('li#pointer-1').addClass(active_list_item);
 			}
 			else
 			{
 				this.drop_down.selector.children().removeClass(active_list_item);// optgroup rework
 
-				var pointer_position;
+				let pointer_position;
 
 				if (this.events.press_down_arrow)
 				{
-					if (this.drop_down.pointer === 0)
-					{
-						pointer_position = 1;
-					}
-					else if (this.drop_down.pointer === this.drop_down.length)
+					if ([0, this.drop_down.length].includes(this.drop_down.pointer))
 					{
 						pointer_position = 1;
 					}
@@ -664,11 +673,7 @@ let counter = 0;
 
 				if (this.events.press_up_arrow)
 				{
-					if (this.drop_down.pointer === 0)
-					{
-						pointer_position = this.drop_down.length;
-					}
-					else if (this.drop_down.pointer === 1)
+					if ([0, 1].includes(this.drop_down.pointer))
 					{
 						pointer_position = this.drop_down.length;
 					}
@@ -681,7 +686,7 @@ let counter = 0;
 				this.drop_down.pointer = pointer_position;
 				
 				let parent_element_height = this.drop_down.selector[0].clientHeight,
-					element = this.drop_down.selector.find('#pointer-'+pointer_position);
+					element = this.drop_down.selector.find('li#pointer-'+pointer_position);
 				
 				element.addClass(active_list_item);
 				
@@ -700,19 +705,46 @@ let counter = 0;
 	},
 	removeDropDownList : function()
 	{
+		$('div.combo-box').find('span>i').removeClass('up');
+		
 		this.drop_down.pointer = 0;
 
-		var i,
-			input_fields_length = this.input_fields.length,
-			combo_box_input = [];
-
-		for (i = 0; i < input_fields_length; ++i)
+		var combo_box_input = [];
+		
+		for (let i of this.input_fields)
 		{
-			combo_box_input.push('input#'+this.input_fields[i]+' + ul');
+			combo_box_input.push(`${i}+ul`);
 		}
-
+		
 		$(combo_box_input.join(',')).remove();
 	},
+	setOrientation : function()
+	{
+		if (combo_box.focused_input.length)
+		{
+			if ($(`input#${combo_box.focused_input}`).length && $(`ul#${combo_box.focused_input}`).length)
+			{
+				let window_height = parseInt($(window).height(), 10),
+					element_top = parseInt($(`input#${combo_box.focused_input}`).offset().top, 10) + 30;
+	
+				let ul_position = 'down';
+	
+				if (window_height - (element_top - window.scrollY) <= $(`ul#${combo_box.focused_input}`)[0].offsetHeight)
+				{
+					ul_position = 'up';
+				}
+				
+				$(`ul#${combo_box.focused_input}`).removeClass('down up').addClass(ul_position).css('visibility', 'visible');
+			}
+		}
+	},
+	setOrientationChange : function()
+	{
+		$(window).on('resize', function()
+		{
+			combo_box.setOrientation();
+		});
+	}(),
 	keyup : function()
 	{
 		$(document).on('keyup', function(event)
@@ -720,7 +752,7 @@ let counter = 0;
 			var focused_form_element_id = $('input:focus').attr('id');
 			//combo_box.test.push([event.which, event.originalEvent.key]);
 			
-			if (typeof focused_form_element_id === 'undefined' || $.inArray(focused_form_element_id, combo_box.input_fields) < 0)// includes array
+			if (typeof focused_form_element_id === 'undefined' || $.inArray(`input#${focused_form_element_id}`, combo_box.input_fields) < 0)// includes array
 			{
 				return;
 			}
@@ -851,7 +883,8 @@ let counter = 0;
 					{
 						if (!combo_box.custom_config[combo_box.focused_input].is_data_ready)
 						{
-							combo_box.getOptionsFromDatabase(combo_box.custom_config[combo_box.focused_input].data());
+							console.log(combo_box.custom_config[combo_box.focused_input]);
+							combo_box.getOptionsFromDatabase(combo_box.custom_config[combo_box.focused_input].callback());
 						}
 					}
 
@@ -872,7 +905,7 @@ let counter = 0;
 			{
 				if (combo_box.drop_down.pointer !== 0)
 				{
-					var list_item = combo_box.drop_down.selector.find('#pointer-'+combo_box.drop_down.pointer),
+					var list_item = combo_box.drop_down.selector.find('li#pointer-'+combo_box.drop_down.pointer),
 						list_item_text = list_item.text(),
 						list_item_data_value = list_item.data('value');
 
@@ -911,18 +944,16 @@ let counter = 0;
 	}()
 };
 
-//var json_data = '{"1":"Sofia","2":"Varna","3":"Plovdiv","4":"Sofia Center","5":"Burgas"}';
-var json_data = '[{"id":1,"value":"testova"},{"id":2,"value":"test"},{"id":3,"value":"асдасдасд"},{"id":4,"value":"sofia"}]';
+var json_data = '[{"key":1,"value":"testova","extra":"asdasdsd","test":"asdasdsd"},{"key":2,"value":"test"},{"key":3,"value":"drug test"},{"key":4,"value":"sofia"},{"key":5,"value":"sofia oblast","extra":"asdasdsd","test":"asdasdsd"}]';
 var combo_box_init = {
 	'js-combo-box-cars' : {
-		value_is_numeric : true
 	},
 	'js-combo-box-languages' : {
 		minimum_input_length : 1,
 		//active_list_item : 'custom'
 	},
 	'js-combo-box-cities' : {
-		minimum_input_length : 3,
+		minimum_input_length : 2,
 		json : {
 			is_data_ready : true,
 			data : JSON.parse(json_data)
@@ -939,7 +970,7 @@ var combo_box_init = {
 
 				setTimeout(function()
 				{
-					object.data = {1 : 'jameson', 2 : 'jack daniels', 3 : 'tomas anderson'};
+					object.data = JSON.parse('[{"key":1,"value":"jameson"}, {"key":2,"value":"jack daniels"}, {"key":1,"value":"johnny walker"}]');
 					object.is_data_ready = true;
 				}, 1000);
 
