@@ -17,6 +17,7 @@ body {margin-top:200px; margin-bottom:800px;}
 form {width:320px; margin:20px auto 0;}
 input {width:100%; height:30px; margin:0 0 20px; padding:0 35px 0 5px; color:#333333; background:#bbeeff; font:14px 'Open Sans', sans-serif; border:1px solid #66ddff; border-radius:3px; box-sizing:border-box; display:block;}
 input:focus {background:#ffffff; outline:none;}
+ul.combo-box:focus {outline:none;}
 input:hover { cursor:pointer;}
 input:focus:hover {cursor:auto;}
 div.combo-box {position:relative;}
@@ -42,7 +43,7 @@ ul.combo-box>li:not(.header):not(.optgroup):hover, ul.combo-box>li.active {backg
 	<div class="combo-box" style="position:relative; width:100%;">
 		<span title="Покажи Автомобили"><i class="down"></i></span>
 		<input type="text" spellcheck="false" id="js-combo-box-cars">
-		
+
 	<ul class="combo-box"  style="display:none">
 		<li class="header warning">няма резултат</li>
 		<li class="header">намерени 14</li>
@@ -62,7 +63,7 @@ ul.combo-box>li:not(.header):not(.optgroup):hover, ul.combo-box>li.active {backg
 		<li>test</li>
 		<li>test</li>
 	</ul>
-		
+
 	</div>
 	<select id="js-combo-box-cars" style="display:none">
 		<option value="">избери</option>
@@ -183,12 +184,12 @@ var combo_box = {
 					{
 						continue;
 					}
-					
+
 					this.data[i] = {};
 					this.custom_config[i] = {
 							is_select : false
 						};
-					
+
 					this.input_fields.push(`input#${i}`);
 
 					if (object[i].hasOwnProperty('are_mathematics_symbols_allowed'))
@@ -198,7 +199,7 @@ var combo_box = {
 							this.custom_config[i].are_mathematics_symbols_allowed = object[i].are_mathematics_symbols_allowed;
 						}
 					}
-					
+
 					if (object[i].hasOwnProperty('are_punctuation_symbols_allowed'))
 					{
 						if (typeof object[i].are_punctuation_symbols_allowed === 'boolean')
@@ -206,7 +207,7 @@ var combo_box = {
 							this.custom_config[i].are_punctuation_symbols_allowed = object[i].are_punctuation_symbols_allowed;
 						}
 					}
-					
+
 					if (object[i].hasOwnProperty('minimum_input_length'))
 					{
 						if (typeof object[i].minimum_input_length === 'number')
@@ -217,7 +218,7 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					if (object[i].hasOwnProperty('active_drop_down_list'))
 					{
 						if (typeof object[i].active_drop_down_list === 'string')
@@ -228,7 +229,7 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					if (object[i].hasOwnProperty('active_list_item'))// check different from header optgroup etc
 					{
 						if (typeof object[i].active_list_item === 'string')
@@ -239,7 +240,7 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					if (object[i].hasOwnProperty('json'))
 					{
 						if (object[i].json.hasOwnProperty('is_data_ready') && object[i].json.hasOwnProperty('data'))
@@ -253,7 +254,7 @@ var combo_box = {
 								}
 								else
 								{
-									
+
 									this.custom_config[i].is_data_ready = false;
 									this.custom_config[i].callback = object[i].json.data;
 								}
@@ -267,9 +268,9 @@ var combo_box = {
 						if (selector.length)
 						{
 							selector.hide();
-	
+
 							this.data[i] = this.getOptionsFromSelect(i, selector.children());
-							
+
 							this.custom_config[i].is_select = true;
 						}
 					}
@@ -283,33 +284,33 @@ var combo_box = {
 					if (['span', 'i'].includes(event.target.nodeName.toLowerCase()))
 					{
 						let collapse = $(this).find('span>i').hasClass('up');
-						
+
 						combo_box.removeDropDownList();
-						
+
 						let id = $(this).find('input').attr('id');
-						
+
 						combo_box.input_characters = $('input#'+id).val().trim();
 
 						if (!collapse)
 						{
 							$(this).find('input').trigger('focus');
-							
+
 							combo_box.is_data_ready = true;
 							combo_box.focused_input = id;
-							
+
 							combo_box.setDropDownList();
 						}
 					}
 				});
-				
+
 				$('body').on('focus', this.input_fields.join(','), function()
 				{
 					combo_box.is_data_ready = false;
 					combo_box.focused_input = this.id;
 					combo_box.input_characters = this.value.trim();
-					
+
 					combo_box.removeDropDownList();
-					
+
 					if (combo_box.custom_config[combo_box.focused_input].is_select)
 					{
 						combo_box.is_data_ready = true;
@@ -321,7 +322,7 @@ var combo_box = {
 							combo_box.is_data_ready = true;
 						}
 					}
-					
+
 					combo_box.setDropDownList();
 				});
 			}
@@ -348,15 +349,15 @@ var combo_box = {
 		for (i in data)
 		{
 			++counter;
-			
+
 			key_value_pair[counter] = {
 				group : '',
 				value : data[i].key,
 				text : data[i].value
 			};
-			
+
 			let more = {};
-			
+
 			for (let ii in data[i])
 			{
 				if (!['key', 'value'].includes(ii))
@@ -364,7 +365,7 @@ var combo_box = {
 					more[ii] = data[i][ii];
 				}
 			}
-			
+
 			if (Object.keys(more).length)
 			{
 				key_value_pair[counter].more = more;
@@ -393,17 +394,17 @@ var combo_box = {
 	{
 		var key_value_pair = {};// data
 		let counter = 0;
-		
+
 		options_selector.each(function()
 		{
 			if ($(this)[0].tagName.toLowerCase() === 'optgroup')
 			{
 				let optgroup = $(this).attr('label');
-				
+
 				$(this).children().each(function()
 				{
 					++counter;
-					
+
 					key_value_pair[counter] = {
 							group : optgroup,
 							value : $(this).val(),
@@ -414,7 +415,7 @@ var combo_box = {
 			else
 			{
 				++counter;
-				
+
 				key_value_pair[counter] = {
 						group : '',
 						value : $(this).val(),
@@ -435,15 +436,15 @@ var combo_box = {
 		}
 
 		let drop_down = $('<ul>').attr({'id' : combo_box.focused_input, 'class' : 'combo-box'}).css('visibility', 'hidden');
-		
+
 		if (minimum_input_length > combo_box.input_characters && !this.custom_config[this.focused_input].is_select)
 		{
 			let search_message = this.config.search_message.replace('%', minimum_input_length);
-			
+
 			drop_down.html(`<li class="header warning">${search_message}</li>`);
 					$('input#'+combo_box.focused_input).after(drop_down);
 			combo_box.setOrientation();
-			
+
 			return;
 		}
 		//
@@ -488,26 +489,26 @@ function escapeString(string)
 					{
 						var i,
 							escape_string = '';
-						
+
 						for (i in combo_box.input_characters)
 						{
 							if ($.inArray(combo_box.input_characters[i], escape_characters) >= 0)
 							{
 								escape_string += '\\';
 							}
-							
+
 							escape_string += combo_box.input_characters[i];
 						}
-						
+
 						return escape_string;
 					})(),
 					pattern_input_characters = new RegExp(input_characters, 'ig');
-					
+
 				if (combo_box.custom_config[combo_box.focused_input].hasOwnProperty('active_drop_down_list'))
 				{
 					drop_down.addClass(combo_box.custom_config[combo_box.focused_input].active_drop_down_list);
 				}
-				
+
 				//$('input#'+combo_box.focused_input).focus();
 				$('input#'+combo_box.focused_input).after(drop_down);
 
@@ -516,23 +517,23 @@ function escapeString(string)
 					let group = object[i].group,
 						value = String(object[i].value),
 						string = object[i].text;
-					
+
 					if (!match_list_items.hasOwnProperty(group))
 					{
 						match_list_items[group] = [];
 					}
-					
+
 					if (!unmatch_list_items.hasOwnProperty(group))
 					{
 						unmatch_list_items[group] = [];
 					}
-					
+
 					if (!group.length && !value.length)
 					{
 						++pointer;
-						
+
 						match_list_items[group].push(`<li data-value="${value}" class="highlight" id="pointer-${pointer}">${string}</li>`);
-						
+
 						continue;
 					}
 
@@ -543,7 +544,7 @@ function escapeString(string)
 
 						let search = string.match(pattern_input_characters),
 							replace_range = [];
-						
+
 						for (let s of search)
 						{
 							let lower_s = s.toLocaleLowerCase(),
@@ -555,13 +556,13 @@ function escapeString(string)
 
 						let highlight = '',
 							close_tag = NaN;
-						
+
 						for (let r = 0; r < string.length; ++r)// [...string]
 						{
 							if (replace_range.length && r === replace_range[0])
 							{
 								highlight += `<b>${string[r]}`;
-								
+
 								close_tag = replace_range[0] + replace_range[1] - 1;
 
 								replace_range.splice(0, 2);
@@ -570,7 +571,7 @@ function escapeString(string)
 							{
 								highlight += string[r];
 							}
-							
+
 							if (r === close_tag)
 							{
 								highlight += '</b>';
@@ -592,17 +593,17 @@ function escapeString(string)
 					let found = combo_box.config.found_message.replace('%', counter),// message for select or from db
 						list_found = `<li class="header">${found}</li>`,
 						list_items = '';
-						
+
 					for (let i in match_list_items)
 					{
 						if (i.length && match_list_items[i].length)
 						{
 							list_items += `<li class="optgroup">${i}</li>`;
 						}
-						
+
 						list_items += match_list_items[i].join('');
 					}
-						
+
 					if (combo_box.custom_config[combo_box.focused_input].is_select)
 					{
 						for (let i in unmatch_list_items)
@@ -611,20 +612,20 @@ function escapeString(string)
 							{
 								list_items += `<li class="optgroup">${i}</li>`;
 							}
-							
+
 							for (let ii of unmatch_list_items[i])
 							{
 								++pointer;
-								
+
 								list_items += $(ii).attr('id', `pointer-${pointer}`)[0].outerHTML;
 							}
 						}
 					}
 
 					drop_down.html(list_found+list_items);
-					
+
 					combo_box.setOrientation();
-					
+
 					if (combo_box.custom_config[combo_box.focused_input].is_select)
 					{
 						$('input#'+combo_box.focused_input).parent().find('span>i').addClass('up');
@@ -684,12 +685,12 @@ function escapeString(string)
 				}
 
 				this.drop_down.pointer = pointer_position;
-				
+
 				let parent_element_height = this.drop_down.selector[0].clientHeight,
 					element = this.drop_down.selector.find('li#pointer-'+pointer_position);
-				
+
 				element.addClass(active_list_item);
-				
+
 				let offset_top = element[0].offsetTop;
 
 				if (offset_top > parent_element_height)
@@ -706,16 +707,16 @@ function escapeString(string)
 	removeDropDownList : function()
 	{
 		$('div.combo-box').find('span>i').removeClass('up');
-		
+
 		this.drop_down.pointer = 0;
 
 		var combo_box_input = [];
-		
+
 		for (let i of this.input_fields)
 		{
 			combo_box_input.push(`${i}+ul`);
 		}
-		
+
 		$(combo_box_input.join(',')).remove();
 	},
 	setOrientation : function()
@@ -726,14 +727,14 @@ function escapeString(string)
 			{
 				let window_height = parseInt($(window).height(), 10),
 					element_top = parseInt($(`input#${combo_box.focused_input}`).offset().top, 10) + 30;
-	
+
 				let ul_position = 'down';
-	
+
 				if (window_height - (element_top - window.scrollY) <= $(`ul#${combo_box.focused_input}`)[0].offsetHeight)
 				{
 					ul_position = 'up';
 				}
-				
+
 				$(`ul#${combo_box.focused_input}`).removeClass('down up').addClass(ul_position).css('visibility', 'visible');
 			}
 		}
@@ -749,117 +750,82 @@ function escapeString(string)
 	{
 		$(document).on('keyup', function(event)
 		{
-			var focused_form_element_id = $('input:focus').attr('id');
-			//combo_box.test.push([event.which, event.originalEvent.key]);
-			
-			if (typeof focused_form_element_id === 'undefined' || $.inArray(`input#${focused_form_element_id}`, combo_box.input_fields) < 0)// includes array
+			var focused_form_element_id = $('input:focus').attr('id');// focused input
+
+			if (focused_form_element_id === undefined || $.inArray(`input#${focused_form_element_id}`, combo_box.input_fields) < 0)// includes array
 			{
 				return;
 			}
-			/*
-			let test = '\\';
-			let punctuation = [...`.,:;'"!?<>`];
-			let math_symbols = [...'-+/*'];
-			let letters = ['A', 'a', 'B', 'b', 'C', 'c'];
-			let digits = ['0', '1', '2'];
-			console.log(punctuation, math_symbols, letters, digits);
-			*/
-			// rewrite with event.originalEvent.key
-			var character_keys = [
-				8,// backspace
-				16,// shift
-				17,// ctrl
-				18,// alt
-				20,// caps lock
-				32,// space
-				46,// delete
-				48,// 0
-				49,// 1
-				50,// 2
-				51,// 3
-				52,// 4
-				53,// 5
-				54,// 6
-				55,// 7
-				56,// 8
-				57,// 9
-				65,// a
-				66,// b
-				67,// c
-				68,// d
-				69,// e
-				70,// f
-				71,// g
-				72,// h
-				73,// i
-				74,// j
-				75,// k
-				76,// l
-				77,// m
-				78,// n
-				79,// o
-				80,// p
-				81,// q
-				82,// r
-				83,// s
-				84,// t
-				85,// u
-				86,// v
-				87,// w
-				88,// x
-				89,// y
-				90,// z
-				96,// 0 numpad
-				97,// 1 numpad
-				98,// 2 numpad
-				99,// 3 numpad
-				100,// 4 numpad
-				101,// 5 numpad
-				102,// 6 numpad
-				103,// 7 numpad
-				104,// 8 numpad
-				105// 9 numpad
-			],
-			mathematics_keys = [
-				61,// equal
-				106,// multiply numpad
-				107,// add numpad
-				109,// subtract numpad
-				110,// decimal point numpad
-				111,// divide numpad
-				173,// minus
-				219,// open bracket
-				221// close braket
-			],
-			punctuation_keys = [
-				188,// comma
-				189,// dash
-				190,// period
-				191,// forward slash
-				192,// grave accent
-				220,// back slash
-				222// single quote
+
+			let system_keys = [
+				16,// Shift
+				17,// Control
+				18,// Alt
+				19,// Pause
+				20,// CapsLock
+				27,// Escape
+				33,// PageUp
+				34,// PageDown
+				35,// End
+				36,// Home
+				37,// ArrowLeft
+				38,// ArrowUp
+				39,// ArrowRight
+				40,// ArrowDown
+				45,// Insert
+				91,// OS
+				144,// NumLock
+				145,// ScrollLock
 			];
 			
+			if (system_keys.includes(event.which))
+			{
+				return;
+			}
+			
+			let review_allowed_keys = true,
+				remove_keys = [
+					8,// Backspace
+					46,// Delete
+				];
+			
+			if (remove_keys.includes(event.which))
+			{
+				review_allowed_keys = false;
+			}
+console.log(event.which, event.originalEvent.key);
+			if (review_allowed_keys)
+			{
+				let symbol = event.originalEvent.key,
+					letters = [...'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz AаБбВвГгДдEеЖжЗзИиЙйКкЛлМмНнOоПпРрСсТтУуФфХхЦцЧчШшЩщЪъЬьЮюЯя'],
+					numbers = [...'0123456789'],
+					entities = [...'@#$%&'],
+					punctuation = [...'.,\'":;!?'],
+					arithmetic = [...'+-*/<>()[]{}'],
+					programming = [...'^~\\|'];
+	
+				console.log(letters, numbers, entities, punctuation, arithmetic, programming);
+			}
+		return;
 			var allowed_keys = character_keys,
 				are_mathematics_symbols_allowed = combo_box.config.are_mathematics_symbols_allowed,
 				are_punctuation_symbols_allowed = combo_box.config.are_punctuation_symbols_allowed;
-			
+
 			if (combo_box.custom_config[combo_box.focused_input].hasOwnProperty('are_mathematics_symbols_allowed'))
 			{
 				are_mathematics_symbols_allowed = combo_box.custom_config[combo_box.focused_input].are_mathematics_symbols_allowed;
 			}
-			
+
 			if (combo_box.custom_config[combo_box.focused_input].hasOwnProperty('are_punctuation_symbols_allowed'))
 			{
 				are_punctuation_symbols_allowed = combo_box.custom_config[combo_box.focused_input].are_punctuation_symbols_allowed;
 			}
-			
+
 			if (are_mathematics_symbols_allowed)
 			{
 				allowed_keys = allowed_keys.concat(mathematics_keys);
 			}
-			
+
 			if (are_punctuation_symbols_allowed)
 			{
 				allowed_keys = allowed_keys.concat(punctuation_keys);
@@ -908,7 +874,7 @@ function escapeString(string)
 					var list_item = combo_box.drop_down.selector.find('li#pointer-'+combo_box.drop_down.pointer),
 						list_item_text = list_item.text(),
 						list_item_data_value = list_item.data('value');
-
+// more data keys
 					$('input#'+combo_box.focused_input).val(list_item_text).attr({'value' : list_item_text, 'data-value' : list_item_data_value});
 					$('input#'+combo_box.focused_input).data('value', list_item_data_value).trigger('change');
 
