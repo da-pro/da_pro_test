@@ -1,3 +1,834 @@
+<script>
+var combo_box = {
+	prefix : 'js-combo-box',
+	is_data_ready : false,
+	data : {},
+	staging : {
+		id : '',
+		value : '',
+		input : [],
+		list : []
+	},
+	list : {
+		html : null,
+		step : 0,
+		size : 0
+	},
+	press_event : {
+		up : false,
+		down : false,
+		enter : false
+	},
+	config : {
+		initial : {
+			are_letters_symbols_allowed : true,
+			are_numbers_symbols_allowed : true,
+			are_entities_symbols_allowed : false,
+			are_punctuation_symbols_allowed : false,
+			are_arithmetic_symbols_allowed : false,
+			are_programming_symbols_allowed : false,
+			minimum_input_length : 1,
+			active_list : '',
+			active_list_item : 'active',
+			json : null
+		},
+		inherit : {}
+	},
+	strings : {
+		search_message : 'въведи минимум % символа',
+		matched_result : 'съвпадения %',
+		found_result : 'намерени %',
+		empty_result : 'няма намерени'
+	},
+	construct : function(object)
+	{
+		let that = this;
+		
+		if (Object.keys(object).length)
+		{
+			let css_class_name_pattern = new RegExp('^[a-z_]{1}[a-z0-9-_]+$', 'i');
+			
+			for (let id in object)
+			{
+				if (object.hasOwnProperty(id))
+				{
+					if (id.indexOf(that.prefix) !== 0 || typeof document.getElementsByTagName('input')[id] === undefined)
+					{
+						continue;
+					}
+					
+					that.data[id] = {};
+					that.config.inherit[id] = {
+						is_select : false
+					};
+					
+					that.staging.input.push(`input#${id}`);
+					that.staging.list.push(`ul#${id}`);
+					
+					let allowed_symbols = '',
+						are_letters_symbols_allowed = that.config.initial.are_letters_symbols_allowed,
+						are_numbers_symbols_allowed = that.config.initial.are_numbers_symbols_allowed,
+						are_entities_symbols_allowed = that.config.initial.are_entities_symbols_allowed,
+						are_punctuation_symbols_allowed = that.config.initial.are_punctuation_symbols_allowed,
+						are_arithmetic_symbols_allowed = that.config.initial.are_arithmetic_symbols_allowed,
+						are_programming_symbols_allowed = that.config.initial.are_programming_symbols_allowed;
+						
+					if (object[id].hasOwnProperty('are_letters_symbols_allowed'))
+					{
+						if (typeof object[id].are_letters_symbols_allowed === 'boolean')
+						{
+							if (are_letters_symbols_allowed !== object[id].are_letters_symbols_allowed)
+							{
+								are_letters_symbols_allowed = !are_letters_symbols_allowed;
+							}
+						}
+					}
+					
+					if (are_letters_symbols_allowed)
+					{
+						allowed_symbols += 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя';
+					}
+					
+					if (object[id].hasOwnProperty('are_numbers_symbols_allowed'))
+					{
+						if (typeof object[id].are_numbers_symbols_allowed === 'boolean')
+						{
+							if (are_numbers_symbols_allowed !== object[id].are_numbers_symbols_allowed)
+							{
+								are_numbers_symbols_allowed = !are_numbers_symbols_allowed;
+							}
+						}
+					}
+					
+					if (are_numbers_symbols_allowed)
+					{
+						allowed_symbols += '0123456789';
+					}
+					
+					if (object[id].hasOwnProperty('are_entities_symbols_allowed'))
+					{
+						if (typeof object[id].are_entities_symbols_allowed === 'boolean')
+						{
+							if (are_entities_symbols_allowed !== object[id].are_entities_symbols_allowed)
+							{
+								are_entities_symbols_allowed = !are_entities_symbols_allowed;
+							}
+						}
+					}
+					
+					if (are_entities_symbols_allowed)
+					{
+						allowed_symbols += '@#$%&';
+					}
+					
+					if (object[id].hasOwnProperty('are_punctuation_symbols_allowed'))
+					{
+						if (typeof object[id].are_punctuation_symbols_allowed === 'boolean')
+						{
+							if (are_punctuation_symbols_allowed !== object[id].are_punctuation_symbols_allowed)
+							{
+								are_punctuation_symbols_allowed = !are_punctuation_symbols_allowed;
+							}
+						}
+					}
+					
+					if (are_punctuation_symbols_allowed)
+					{
+						allowed_symbols += '.,\'":;!?';
+					}
+					
+					if (object[id].hasOwnProperty('are_arithmetic_symbols_allowed'))
+					{
+						if (typeof object[id].are_arithmetic_symbols_allowed === 'boolean')
+						{
+							if (are_arithmetic_symbols_allowed !== object[id].are_arithmetic_symbols_allowed)
+							{
+								are_arithmetic_symbols_allowed = !are_arithmetic_symbols_allowed;
+							}
+						}
+					}
+					
+					if (are_arithmetic_symbols_allowed)
+					{
+						allowed_symbols += '+\-*/<>()[]{}';
+					}
+					
+					if (object[id].hasOwnProperty('are_programming_symbols_allowed'))
+					{
+						if (typeof object[id].are_programming_symbols_allowed === 'boolean')
+						{
+							if (are_programming_symbols_allowed !== object[id].are_programming_symbols_allowed)
+							{
+								are_programming_symbols_allowed = !are_programming_symbols_allowed;
+							}
+						}
+					}
+					
+					if (are_programming_symbols_allowed)
+					{
+						allowed_symbols += '^~\\|';
+					}
+					
+					that.config.inherit[id].allowed_symbols = new RegExp('[^'+that.escapeString(allowed_symbols)+']', 'g');
+					
+					if (object[id].hasOwnProperty('minimum_input_length'))
+					{
+						if (typeof object[id].minimum_input_length === 'number')
+						{
+							if (that.config.initial.minimum_input_length < object[id].minimum_input_length)
+							{
+								that.config.inherit[id].minimum_input_length = object[id].minimum_input_length;
+							}
+						}
+					}
+					
+					if (object[id].hasOwnProperty('active_list'))
+					{
+						if (typeof object[id].active_list === 'string')
+						{
+							if (css_class_name_pattern.test(object[id].active_list))
+							{
+								that.config.inherit[id].active_list = object[id].active_list;
+							}
+						}
+					}
+					
+					if (object[id].hasOwnProperty('active_list_item'))
+					{
+						if (typeof object[id].active_list_item === 'string')
+						{
+							if (css_class_name_pattern.test(object[id].active_list_item))
+							{
+								if (!['header', 'group', 'highlight', 'warning'].includes(object[id].active_list_item))
+								{
+									that.config.inherit[id].active_list_item = object[id].active_list_item;
+								}
+							}
+						}
+					}
+					
+					if (object[id].hasOwnProperty('json'))
+					{
+						if (object[id].json.hasOwnProperty('is_data_ready') && object[id].json.hasOwnProperty('data'))
+						{
+							if (typeof object[id].json.is_data_ready === 'boolean')
+							{
+								if (object[id].json.is_data_ready)
+								{
+									that.config.inherit[id].is_data_ready = true;
+									that.data[id] = that.getOptionsFromJSON(object[id].json.data);
+								}
+								else
+								{
+									that.config.inherit[id].is_data_ready = false;
+									that.config.inherit[id].callback = object[id].json.data;
+								}
+							}
+						}
+					}
+					else
+					{
+						let selector = $(`select#${id}`);
+						
+						if (selector.length)
+						{
+							selector.hide();
+							
+							that.data[id] = that.getOptionsFromSelect(selector.children());
+							
+							that.config.inherit[id].is_select = true;
+						}
+					}
+				}
+			}
+		}
+		
+		if (that.staging.input.length)
+		{
+			$('div.combo-box').on('click', function(event)
+			{
+				if (['span', 'i'].includes(event.target.nodeName.toLowerCase()))
+				{
+					let is_collapse = $(this).find('span>i').hasClass('up'),
+						id = $(this).find('input').attr('id');
+						
+					that.staging.id = id;
+					that.unsetList();
+					
+					if (!is_collapse)
+					{
+						$(`input#${id}`).trigger('focus');
+						
+						that.is_data_ready = true;
+						that.staging.value = $(`input#${id}`).val().trim();
+						that.setList();
+					}
+				}
+			});
+			
+			$('body').on('focus', that.staging.input.join(','), function()
+			{
+				that.is_data_ready = false;
+				that.staging.id = this.id;
+				that.staging.value = this.value.trimStart();
+				
+				that.unsetList();
+				
+				if (that.config.inherit[this.id].is_select)
+				{
+					that.is_data_ready = true;
+				}
+				else
+				{
+					if (that.config.inherit[this.id].hasOwnProperty('is_data_ready'))// and that.data[id] length
+					{
+						that.is_data_ready = that.config.inherit[this.id].is_data_ready;// callback for when json or from db
+					}
+				}
+				
+				that.setList();
+			});
+		}
+		
+		$('body').on('click focus', `ul[id^=${that.prefix}]>li:not(.header):not(.group)`, function()
+		{
+			console.log(this, $(this));// that.setInputData();
+			
+			let text = $(this).text(),
+				value = $(this).data('value');
+
+			// populate with data-combo-box values if exist
+			$(`input#${that.staging.id}`).val(text).attr({'value' : text, 'data-value' : value});
+			$(`input#${that.staging.id}`).data('value', value).trigger('change');
+			$(`input#${that.staging.id}`).blur();
+
+			that.unsetList();
+		});
+	},
+	setInputData : function(object)
+	{
+		// populate with data-combo-box values if exist
+	},
+	getOptionsFromJSON : function(object)
+	{
+		let data = {},
+			counter = 0;
+
+		for (let i in object)
+		{
+			++counter;
+
+			let group = object[i].hasOwnProperty('group') ? object[i].group : '';
+			
+			data[counter] = {
+				group : group,
+				value : object[i].key,
+				text : object[i].value
+			};
+
+			let more = {};
+
+			for (let ii in object[i])
+			{
+				if (!['group', 'key', 'value'].includes(ii))
+				{
+					more[ii] = object[i][ii];
+				}
+			}
+
+			if (Object.keys(more).length)
+			{
+				data[counter].more = more;
+			}
+		}
+
+		return data;
+	},
+	getOptionsFromDatabase : function(object)
+	{
+		this.is_data_ready = false;
+		
+		let set_interval = setInterval(function()
+		{
+			if (object.is_data_ready)
+			{
+				clearInterval(set_interval);
+
+				combo_box.data[combo_box.staging.id] = combo_box.getOptionsFromJSON(object.data);
+				combo_box.is_data_ready = true;
+			}
+		}, 100);
+	},
+	getOptionsFromSelect : function(options_selector)
+	{
+		let data = {},
+			counter = 0;
+
+		options_selector.each(function()
+		{
+			if ($(this)[0].tagName.toLowerCase() === 'optgroup')
+			{
+				let optgroup = $(this).attr('label');
+
+				$(this).children().each(function()
+				{
+					++counter;
+
+					data[counter] = {
+							group : optgroup,
+							value : $(this).val(),
+							text : $(this).text()
+						};
+				});
+			}
+			else
+			{
+				++counter;
+
+				data[counter] = {
+					group : '',
+					value : $(this).val(),
+					text : $(this).text()
+				};
+			}
+		});
+
+		return data;
+	},
+	setList : function()
+	{
+		let that = this,
+			id = that.staging.id,
+			minimum_input_length = that.config.initial.minimum_input_length;
+		
+		if (that.config.inherit[id].hasOwnProperty('minimum_input_length'))
+		{
+			minimum_input_length = that.config.inherit[id].minimum_input_length;
+		}
+
+		let list = $('<ul>').attr({'id' : id, 'class' : 'combo-box'}).css('visibility', 'hidden');
+		
+		if (minimum_input_length > that.staging.value.length && !that.config.inherit[id].is_select)
+		{
+			that.unsetList();
+			
+			let search_message = (minimum_input_length > 1) ? that.strings.search_message : that.strings.search_message.slice(0, -1);
+			
+			search_message = search_message.replace('%', minimum_input_length);
+			
+			list.html(`<li class="header warning">${search_message}</li>`);
+			
+			$(`input#${id}`).after(list);
+			
+			that.setOrientation();
+			
+			return;
+		}
+
+		let set_interval = setInterval(function()
+		{
+			if (that.is_data_ready)
+			{
+				clearInterval(set_interval);
+				
+				that.unsetList();
+				
+				let object = that.data[id],
+					match_list_items = {},
+					unmatch_list_items = {},
+					step = 0,
+					counter = 0,
+					pattern = new RegExp(that.escapeString(that.staging.value), 'gi');
+					
+				if (that.config.inherit[id].hasOwnProperty('active_list'))
+				{
+					list.addClass(that.config.inherit[id].active_list);
+				}
+				//$('input#'+combo_box.focused_input).focus();
+				//$('input#'+combo_box.focused_input).after(drop_down);
+				for (let i in object)
+				{
+					let group = object[i].group,
+						value = String(object[i].value),
+						string = object[i].text;
+					// add for more key
+					if (!match_list_items.hasOwnProperty(group))
+					{
+						match_list_items[group] = [];
+					}
+					
+					if (!unmatch_list_items.hasOwnProperty(group))
+					{
+						unmatch_list_items[group] = [];
+					}
+					
+					if (!group.length && !value.length)
+					{
+						++step;
+						
+						match_list_items[group].push(`<li data-value="${value}" class="highlight" id="step-${step}">${string}</li>`);
+						
+						continue;
+					}
+
+					if (pattern.test(string) && that.staging.value.length)
+					{
+						++step;
+						++counter;
+
+						let search = string.match(pattern),
+							replace_range = [];
+							
+						for (let s of search)
+						{
+							let lower_string = s.toLocaleLowerCase(),
+								index_from = replace_range.length ? replace_range[replace_range.length - 2] + lower_string.length : 0;
+								
+							replace_range.push(string.toLocaleLowerCase().indexOf(lower_string, index_from));
+							replace_range.push(lower_string.length);
+						}
+						
+						let highlight = '',
+							close_tag = NaN;
+
+						for (let r of [...string])
+						{
+							if (replace_range.length && r === replace_range[0])
+							{
+								highlight += `<b>${r}`;
+								
+								close_tag = replace_range[0] + replace_range[1] - 1;
+								
+								replace_range.splice(0, 2);
+							}
+							else
+							{
+								highlight += r;
+							}
+							
+							if (r === close_tag)
+							{
+								highlight += '</b>';
+							}
+						}
+						
+						match_list_items[group].push(`<li data-value="${value}" class="highlight" id="step-${step}">${highlight}</li>`);
+					}
+					else
+					{
+						unmatch_list_items[group].push(`<li data-value="${value}">${string}</li>`);
+					}
+				}
+
+				if (counter !== 0 || true)// rework condition for empty matches
+				{
+					let found = that.strings.matched_result.replace('%', counter),// message for select or from db
+						list_found = `<li class="header">${found}</li>`,
+						list_items = '';
+						
+					for (let i in match_list_items)
+					{
+						if (i.length && match_list_items[i].length)
+						{
+							list_items += `<li class="group">${i}</li>`;
+						}
+						
+						list_items += match_list_items[i].join('');
+					}
+					
+					if (that.config.inherit[id].is_select)
+					{
+						for (let i in unmatch_list_items)
+						{
+							if (i.length && unmatch_list_items[i].length)
+							{
+								list_items += `<li class="group">${i}</li>`;
+							}
+							
+							for (let ii of unmatch_list_items[i])
+							{
+								++step;
+								
+								list_items += $(ii).attr('id', `step-${step}`)[0].outerHTML;
+							}
+						}
+					}
+
+					list.html(list_found+list_items);
+					
+					that.list.html = list;
+					that.list.size = that.config.inherit[id].is_select ? Object.keys(object).length : counter;
+					
+					$(`input#${id}`).after(list);
+					
+					that.setOrientation();
+					
+					if (that.config.inherit[id].is_select)
+					{
+						$(`input#${id}`).parent().find('span>i').addClass('up');
+					}
+				}
+				else
+				{
+					that.list.step = 0;
+				}
+			}
+		}, 100);
+	},
+	stepThroughList : function()
+	{
+		if (this.list.size)
+		{
+			let active_list_item = this.config.initial.active_list_item;
+
+			if (this.config.inherit[this.staging.id].hasOwnProperty('active_list_item'))
+			{
+				active_list_item = this.config.inherit[this.staging.id].active_list_item;
+			}
+			
+			if (this.list.size === 1)
+			{
+				this.list.step = 1;
+				this.list.html[0].find('li#step-1').addClass(active_list_item);
+			}
+			else
+			{
+				this.list.html.children().removeClass(active_list_item);
+
+				let step_position;
+
+				if (this.press_event.down)
+				{
+					if ([0, this.list.size].includes(this.list.step))
+					{
+						step_position = 1;
+					}
+					else
+					{
+						step_position = this.list.step + 1;
+					}
+				}
+
+				if (this.press_event.up)
+				{
+					if ([0, 1].includes(this.list.step))
+					{
+						step_position = this.list.size;
+					}
+					else
+					{
+						step_position = this.list.step - 1;
+					}
+				}
+
+				this.list.step = step_position;
+
+				let parent_element_height = this.list.html[0].clientHeight,
+					element = this.list.html.find(`li#step-${step_position}`);
+
+				element.addClass(active_list_item);
+
+				let offset_top = element[0].offsetTop;
+
+				if (offset_top > parent_element_height)
+				{
+					this.list.html[0].scrollTop = offset_top + element[0].offsetHeight - parent_element_height;
+				}
+				else
+				{
+					this.list.html[0].scrollTop = 0;
+				}
+			}
+		}
+	},
+	unsetList : function()
+	{
+		$(this.staging.list.join(',')).remove();
+		$('div.combo-box').find('span>i').removeClass('up');
+		
+		this.list.step = 0;
+	},
+	escapeString : function(string)
+	{
+		const escape_characters = [...'^$?+*.[](){}|\\'];
+		
+		let escape_string = '';
+		
+		for (let i of [...string])
+		{
+			if (escape_characters.includes(i))
+			{
+				escape_string += '\\';
+			}
+			
+			escape_string += i;
+		}
+		
+		return escape_string;
+	},
+	setOrientation : function()
+	{
+		if (combo_box.staging.id.length)
+		{
+			console.log($(`ul#${combo_box.staging.id}`));
+			if ($(`input#${combo_box.staging.id}`).length && $(`ul#${combo_box.staging.id}`).length)
+			{
+				let window_height = parseInt($(window).height(), 10),
+					element_top = parseInt($(`input#${combo_box.staging.id}`).offset().top, 10) + 30;
+
+				let ul_position = 'down';
+
+				if (window_height - (element_top - window.scrollY) <= $(`ul#${combo_box.staging.id}`)[0].offsetHeight)
+				{
+					ul_position = 'up';
+				}
+
+				$(`ul#${combo_box.staging.id}`).removeClass('down up').addClass(ul_position).css('visibility', 'visible');
+			}
+		}
+	},
+	setOrientationChange : function()
+	{
+		$(window).on('resize', function()
+		{
+			combo_box.setOrientation();
+		});
+	}(),
+	keyup : function()
+	{
+		$(document).on('keyup', function(event)
+		{
+			let system_keys = [
+				16,// Shift
+				17,// Control
+				18,// Alt
+				19,// Pause
+				20,// CapsLock
+				27,// Escape
+				33,// PageUp
+				34,// PageDown
+				35,// End
+				36,// Home
+				37,// ArrowLeft
+				38,// ArrowUp
+				39,// ArrowRight
+				40,// ArrowDown
+				45,// Insert
+				91,// OS
+				144,// NumLock
+				145,// ScrollLock
+			];
+			
+			if (system_keys.includes(event.which))
+			{
+				return;
+			}
+			
+			let focused_form_element_id = $('input:focus').attr('id');
+
+			if (focused_form_element_id === undefined || !combo_box.staging.input.includes(`input#${focused_form_element_id}`))
+			{
+				return;
+			}
+
+			let value = $(`input#${combo_box.staging.id}`).val().trimStart(),
+				review_allowed_keys = true,
+				remove_keys = [
+					8,// Backspace
+					46,// Delete
+				];
+			
+			if (remove_keys.includes(event.which))
+			{
+				review_allowed_keys = false;
+			}
+
+			if (review_allowed_keys)
+			{
+				value = value.replace(combo_box.config.inherit[combo_box.staging.id].allowed_symbols, '');
+				
+				$(`input#${combo_box.staging.id}`).val(value);
+			}
+			
+			let minimum_input_length = combo_box.config.initial.minimum_input_length,
+				input_length = value.length;
+
+				if (combo_box.config.inherit[combo_box.staging.id].hasOwnProperty('minimum_input_length'))
+				{
+					minimum_input_length = combo_box.config.inherit[combo_box.staging.id].minimum_input_length;
+				}
+
+				if (input_length >= minimum_input_length)
+				{
+					combo_box.staging.value = value;
+				}
+				
+				combo_box.setList();
+/*
+				return;
+				if (input_length >= minimum_input_length)
+				{
+					combo_box.input_characters = $('input#'+combo_box.focused_input).val().trim();
+
+					if (combo_box.custom_config[combo_box.focused_input].hasOwnProperty('is_data_ready'))
+					{
+						if (!combo_box.custom_config[combo_box.focused_input].is_data_ready)
+						{
+							console.log(combo_box.custom_config[combo_box.focused_input]);
+							combo_box.getOptionsFromDatabase(combo_box.custom_config[combo_box.focused_input].callback());
+						}
+					}
+				}
+*/
+		});
+	}(),
+	keydown : function()
+	{
+		$(document).on('keydown', function(event)
+		{
+			if (event.which === 13)
+			{
+				if (combo_box.list.step !== 0)
+				{
+					let list_item = combo_box.list.html.find(`li#step-${combo_box.list.step}`),
+						list_item_text = list_item.text(),
+						list_item_data_value = list_item.data('value');
+// more data keys
+					$(`input#${combo_box.staging.id}`).val(list_item_text).attr({'value' : list_item_text, 'data-value' : list_item_data_value});
+					$(`input#${combo_box.staging.id}`).data('value', list_item_data_value).trigger('change');
+
+					combo_box.unsetList();
+				}
+
+				return;
+			}
+
+			if (event.which === 38)
+			{
+				combo_box.press_event.up = true;
+				combo_box.press_event.down = false;
+				combo_box.stepThroughList();
+
+				return;
+			}
+
+			if (event.which === 40)
+			{
+				combo_box.press_event.down = true;
+				combo_box.press_event.up = false;
+				combo_box.stepThroughList();
+
+				return;
+			}
+
+			if (event.which === 27)
+			{
+				combo_box.unsetList();
+			}
+		});
+	}()
+};
+</script>
 <!doctype html>
 <html>
 <head>
