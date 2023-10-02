@@ -150,7 +150,7 @@ var combo_box = {
 					
 					if (are_arithmetic_symbols_allowed)
 					{
-						allowed_symbols += '+\-*/<>()[]{}';
+						allowed_symbols += '+-*/<>()[]{}';
 					}
 					
 					if (object[id].hasOwnProperty('are_programming_symbols_allowed'))
@@ -242,7 +242,7 @@ var combo_box = {
 				}
 			}
 		}
-		
+
 		if (that.staging.input.length)
 		{
 			$('div.combo-box').on('click', function(event)
@@ -252,37 +252,35 @@ var combo_box = {
 					let is_collapse = $(this).find('span>i').hasClass('up'),
 						id = $(this).find('input').attr('id');
 						
-					that.staging.id = id;
 					that.unsetList();
 					
 					if (!is_collapse)
 					{
-						$(`input#${id}`).trigger('focus');
-						
-						that.is_data_ready = true;
-						that.staging.value = $(`input#${id}`).val().trim();
-						that.setList();
+						$(`input#${id}`).focus();
 					}
 				}
 			});
 			
 			$('body').on('focus', that.staging.input.join(','), function()
 			{
-				that.is_data_ready = false;
-				that.staging.id = this.id;
+				let id = this.id;
+				
+				that.staging.id = id;
 				that.staging.value = this.value.trimStart();
 				
 				that.unsetList();
 				
-				if (that.config.inherit[this.id].is_select)
+				if (that.config.inherit[id].is_select)
 				{
 					that.is_data_ready = true;
 				}
 				else
 				{
-					if (that.config.inherit[this.id].hasOwnProperty('is_data_ready'))// and that.data[id] length
+					that.is_data_ready = that.config.inherit[id].is_data_ready;
+					
+					if (that.config.inherit[id].hasOwnProperty('callback') && Object.keys(that.data[id]).length)
 					{
-						that.is_data_ready = that.config.inherit[this.id].is_data_ready;// callback for when json or from db
+						that.is_data_ready = true;
 					}
 				}
 				
@@ -292,22 +290,21 @@ var combo_box = {
 		
 		$('body').on('click focus', `ul[id^=${that.prefix}]>li:not(.header):not(.group)`, function()
 		{
-			console.log(this, $(this));// that.setInputData();
-			
-			let text = $(this).text(),
-				value = $(this).data('value');
-
-			// populate with data-combo-box values if exist
-			$(`input#${that.staging.id}`).val(text).attr({'value' : text, 'data-value' : value});
-			$(`input#${that.staging.id}`).data('value', value).trigger('change');
-			$(`input#${that.staging.id}`).blur();
-
-			that.unsetList();
+			that.setInputData(this);
 		});
 	},
-	setInputData : function(object)
+	setInputData : function(that)
 	{
+		console.log(that);
+		let text = that.innerText,
+			value = $(that).data('value');
 		// populate with data-combo-box values if exist
+		$(`input#${this.staging.id}`).val(text).attr({'value' : text, 'data-value' : value});
+		$(`input#${this.staging.id}`).data('value', value).trigger('change');
+
+		document.getElementsByTagName('input')[this.staging.id].blur();
+
+		this.unsetList();
 	},
 	getOptionsFromJSON : function(object)
 	{
@@ -326,19 +323,19 @@ var combo_box = {
 				text : object[i].value
 			};
 
-			let more = {};
+			let data_combo_box = {};
 
 			for (let ii in object[i])
 			{
 				if (!['group', 'key', 'value'].includes(ii))
 				{
-					more[ii] = object[i][ii];
+					data_combo_box[ii] = object[i][ii];
 				}
 			}
 
-			if (Object.keys(more).length)
+			if (Object.keys(data_combo_box).length)
 			{
-				data[counter].more = more;
+				data[counter].data_combo_box = data_combo_box;
 			}
 		}
 
@@ -346,7 +343,9 @@ var combo_box = {
 	},
 	getOptionsFromDatabase : function(object)
 	{
-		this.is_data_ready = false;
+		let that = this;
+		
+		that.is_data_ready = false;
 		
 		let set_interval = setInterval(function()
 		{
@@ -354,8 +353,8 @@ var combo_box = {
 			{
 				clearInterval(set_interval);
 
-				combo_box.data[combo_box.staging.id] = combo_box.getOptionsFromJSON(object.data);
-				combo_box.is_data_ready = true;
+				that.data[that.staging.id] = that.getOptionsFromJSON(object.data);
+				that.is_data_ready = true;
 			}
 		}, 100);
 	},
@@ -368,14 +367,14 @@ var combo_box = {
 		{
 			if ($(this)[0].tagName.toLowerCase() === 'optgroup')
 			{
-				let optgroup = $(this).attr('label');
+				let group = $(this).attr('label');
 
 				$(this).children().each(function()
 				{
 					++counter;
 
 					data[counter] = {
-							group : optgroup,
+							group : group,
 							value : $(this).val(),
 							text : $(this).text()
 						};
@@ -406,7 +405,7 @@ var combo_box = {
 			minimum_input_length = that.config.inherit[id].minimum_input_length;
 		}
 
-		let list = $('<ul>').attr({'id' : id, 'class' : 'combo-box'}).css('visibility', 'hidden');
+		let list = $('<ul>').attr({'id' : id, 'class' : 'combo-box', 'tabindex' : -1}).css('visibility', 'hidden');
 		
 		if (minimum_input_length > that.staging.value.length && !that.config.inherit[id].is_select)
 		{
@@ -650,7 +649,7 @@ var combo_box = {
 	},
 	escapeString : function(string)
 	{
-		const escape_characters = [...'^$?+*.[](){}|\\'];
+		const escape_characters = [...'^$?+-*.[](){}|\\'];
 		
 		let escape_string = '';
 		
@@ -670,7 +669,7 @@ var combo_box = {
 	{
 		if (combo_box.staging.id.length)
 		{
-			console.log($(`ul#${combo_box.staging.id}`));
+			//console.log($(`ul#${combo_box.staging.id}`));
 			if ($(`input#${combo_box.staging.id}`).length && $(`ul#${combo_box.staging.id}`).length)
 			{
 				let window_height = parseInt($(window).height(), 10),
@@ -790,37 +789,30 @@ var combo_box = {
 			{
 				if (combo_box.list.step !== 0)
 				{
-					let list_item = combo_box.list.html.find(`li#step-${combo_box.list.step}`),
-						list_item_text = list_item.text(),
-						list_item_data_value = list_item.data('value');
-// more data keys
-					$(`input#${combo_box.staging.id}`).val(list_item_text).attr({'value' : list_item_text, 'data-value' : list_item_data_value});
-					$(`input#${combo_box.staging.id}`).data('value', list_item_data_value).trigger('change');
-
-					combo_box.unsetList();
+					combo_box.setInputData(document.getElementsByTagName('li')[`step-${combo_box.list.step}`]);
 				}
-
+				
 				return;
 			}
-
+			
 			if (event.which === 38)
 			{
 				combo_box.press_event.up = true;
 				combo_box.press_event.down = false;
 				combo_box.stepThroughList();
-
+				
 				return;
 			}
-
+			
 			if (event.which === 40)
 			{
 				combo_box.press_event.down = true;
 				combo_box.press_event.up = false;
 				combo_box.stepThroughList();
-
+				
 				return;
 			}
-
+			
 			if (event.which === 27)
 			{
 				combo_box.unsetList();
