@@ -23,10 +23,10 @@ var combo_box = {
 		initial : {
 			are_letters_symbols_allowed : true,
 			are_numbers_symbols_allowed : true,
-			are_entities_symbols_allowed : false,
 			are_punctuation_symbols_allowed : false,
 			are_arithmetic_symbols_allowed : false,
 			are_programming_symbols_allowed : false,
+			are_entities_symbols_allowed : false,
 			minimum_input_length : 1,
 			active_list : '',
 			active_list_item : 'active',
@@ -68,10 +68,10 @@ var combo_box = {
 					let allowed_symbols = '',
 						are_letters_symbols_allowed = that.config.initial.are_letters_symbols_allowed,
 						are_numbers_symbols_allowed = that.config.initial.are_numbers_symbols_allowed,
-						are_entities_symbols_allowed = that.config.initial.are_entities_symbols_allowed,
 						are_punctuation_symbols_allowed = that.config.initial.are_punctuation_symbols_allowed,
 						are_arithmetic_symbols_allowed = that.config.initial.are_arithmetic_symbols_allowed,
-						are_programming_symbols_allowed = that.config.initial.are_programming_symbols_allowed;
+						are_programming_symbols_allowed = that.config.initial.are_programming_symbols_allowed,
+						are_entities_symbols_allowed = that.config.initial.are_entities_symbols_allowed;
 						
 					if (object[id].hasOwnProperty('are_letters_symbols_allowed'))
 					{
@@ -105,22 +105,6 @@ var combo_box = {
 						allowed_symbols += '0123456789';
 					}
 					
-					if (object[id].hasOwnProperty('are_entities_symbols_allowed'))
-					{
-						if (typeof object[id].are_entities_symbols_allowed === 'boolean')
-						{
-							if (are_entities_symbols_allowed !== object[id].are_entities_symbols_allowed)
-							{
-								are_entities_symbols_allowed = !are_entities_symbols_allowed;
-							}
-						}
-					}
-					
-					if (are_entities_symbols_allowed)
-					{
-						allowed_symbols += '@#$%&';
-					}
-					
 					if (object[id].hasOwnProperty('are_punctuation_symbols_allowed'))
 					{
 						if (typeof object[id].are_punctuation_symbols_allowed === 'boolean')
@@ -134,7 +118,7 @@ var combo_box = {
 					
 					if (are_punctuation_symbols_allowed)
 					{
-						allowed_symbols += '.,\'":;!?';
+						allowed_symbols += `.,'":;!?`;
 					}
 					
 					if (object[id].hasOwnProperty('are_arithmetic_symbols_allowed'))
@@ -167,6 +151,22 @@ var combo_box = {
 					if (are_programming_symbols_allowed)
 					{
 						allowed_symbols += '^~\\|';
+					}
+					
+					if (object[id].hasOwnProperty('are_entities_symbols_allowed'))
+					{
+						if (typeof object[id].are_entities_symbols_allowed === 'boolean')
+						{
+							if (are_entities_symbols_allowed !== object[id].are_entities_symbols_allowed)
+							{
+								are_entities_symbols_allowed = !are_entities_symbols_allowed;
+							}
+						}
+					}
+					
+					if (are_entities_symbols_allowed)
+					{
+						allowed_symbols += '@#$%&';
 					}
 					
 					that.config.inherit[id].allowed_symbols = new RegExp('[^'+that.escapeString(allowed_symbols)+']', 'g');
@@ -319,15 +319,15 @@ var combo_box = {
 			
 			data[counter] = {
 				group : group,
-				value : object[i].key,
-				text : object[i].value
+				value : object[i].value,
+				text : object[i].text
 			};
 
 			let data_combo_box = {};
 
 			for (let ii in object[i])
 			{
-				if (!['group', 'key', 'value'].includes(ii))
+				if (!['group', 'value', 'text'].includes(ii))
 				{
 					data_combo_box[ii] = object[i][ii];
 				}
@@ -375,8 +375,8 @@ var combo_box = {
 
 					data[counter] = {
 							group : group,
-							value : $(this).val(),
-							text : $(this).text()
+							value : this.value,
+							text : this.innerText
 						};
 				});
 			}
@@ -386,8 +386,8 @@ var combo_box = {
 
 				data[counter] = {
 					group : '',
-					value : $(this).val(),
-					text : $(this).text()
+					value : this.value,
+					text : this.innerText
 				};
 			}
 		});
@@ -405,12 +405,12 @@ var combo_box = {
 			minimum_input_length = that.config.inherit[id].minimum_input_length;
 		}
 
-		let list = $('<ul>').attr({'id' : id, 'class' : 'combo-box', 'tabindex' : -1}).css('visibility', 'hidden');
+		that.unsetList();
+		
+		let list = $('<ul>').attr({'tabindex' : -1, 'class' : 'combo-box', 'id' : id}).css('visibility', 'hidden');
 		
 		if (minimum_input_length > that.staging.value.length && !that.config.inherit[id].is_select)
 		{
-			that.unsetList();
-			
 			let search_message = (minimum_input_length > 1) ? that.strings.search_message : that.strings.search_message.slice(0, -1);
 			
 			search_message = search_message.replace('%', minimum_input_length);
@@ -430,7 +430,10 @@ var combo_box = {
 			{
 				clearInterval(set_interval);
 				
-				that.unsetList();
+				if (that.config.inherit[id].hasOwnProperty('active_list'))
+				{
+					list.addClass(that.config.inherit[id].active_list);
+				}
 				
 				let object = that.data[id],
 					match_list_items = {},
@@ -439,18 +442,13 @@ var combo_box = {
 					counter = 0,
 					pattern = new RegExp(that.escapeString(that.staging.value), 'gi');
 					
-				if (that.config.inherit[id].hasOwnProperty('active_list'))
-				{
-					list.addClass(that.config.inherit[id].active_list);
-				}
-				//$('input#'+combo_box.focused_input).focus();
-				//$('input#'+combo_box.focused_input).after(drop_down);
 				for (let i in object)
 				{
 					let group = object[i].group,
 						value = String(object[i].value),
-						string = object[i].text;
-					// add for more key
+						text = object[i].text,
+						data_combo_box = object[i].hasOwnProperty('data_combo_box') ? object[i].data_combo_box : {};
+						
 					if (!match_list_items.hasOwnProperty(group))
 					{
 						match_list_items[group] = [];
@@ -465,32 +463,59 @@ var combo_box = {
 					{
 						++step;
 						
-						match_list_items[group].push(`<li data-value="${value}" class="highlight" id="step-${step}">${string}</li>`);
+						match_list_items[group].push(`<li data-value="${value}" class="highlight" id="step-${step}">${text}</li>`);
 						
 						continue;
 					}
 
-					if (pattern.test(string) && that.staging.value.length)
+					if (pattern.test(text) && that.staging.value.length)
 					{
 						++step;
 						++counter;
-
-						let search = string.match(pattern),
+						
+						let search = text.match(pattern),
 							replace_range = [];
 							
 						for (let s of search)
 						{
-							let lower_string = s.toLocaleLowerCase(),
-								index_from = replace_range.length ? replace_range[replace_range.length - 2] + lower_string.length : 0;
-								
-							replace_range.push(string.toLocaleLowerCase().indexOf(lower_string, index_from));
-							replace_range.push(lower_string.length);
+							let index_from = replace_range.length ? replace_range[replace_range.length - 1][0] + s.length : 0;
+							
+							replace_range.push([text.indexOf(s, index_from), text.indexOf(s, index_from) + s.length - 1]);
 						}
-						
-						let highlight = '',
+						console.log(replace_range);
+						let text_length = text.length,
+							highlight = '',
 							close_tag = NaN;
-
-						for (let r of [...string])
+	
+						for (let i = 0; i < text_length; ++i)
+						{
+							if (replace_range.length)
+							{
+								if (!replace_range[0].includes(i))
+								{
+									highlight += text[i];
+								}
+								
+								if (i === replace_range[0][0])
+								{
+									highlight += `<b>${text[i]}`;
+								}
+								
+								if (i === replace_range[0][1])
+								{
+									highlight += `</b>`;
+									
+									replace_range.splice(0, 1);
+								}
+							}
+							else
+							{
+								highlight += text[i];
+							}
+						}
+						console.log(highlight);
+/*
+						for (let r of [...text])
 						{
 							if (replace_range.length && r === replace_range[0])
 							{
@@ -510,12 +535,12 @@ var combo_box = {
 								highlight += '</b>';
 							}
 						}
-						
+*/				
 						match_list_items[group].push(`<li data-value="${value}" class="highlight" id="step-${step}">${highlight}</li>`);
 					}
 					else
 					{
-						unmatch_list_items[group].push(`<li data-value="${value}">${string}</li>`);
+						unmatch_list_items[group].push(`<li data-value="${value}">${text}</li>`);
 					}
 				}
 
@@ -760,6 +785,10 @@ var combo_box = {
 				if (input_length >= minimum_input_length)
 				{
 					combo_box.staging.value = value;
+				}
+				else
+				{
+					combo_box.staging.value = '';
 				}
 				
 				combo_box.setList();
