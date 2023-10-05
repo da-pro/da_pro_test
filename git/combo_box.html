@@ -447,7 +447,16 @@ var combo_box = {
 					let group = object[i].group,
 						value = String(object[i].value),
 						text = object[i].text,
-						data_combo_box = object[i].hasOwnProperty('data_combo_box') ? object[i].data_combo_box : {};
+						data_combo_box = object[i].hasOwnProperty('data_combo_box') ? object[i].data_combo_box : {},
+						data = {
+							'data-value' : value,
+							text : text
+						};
+						
+					for (let c in data_combo_box)
+					{
+						data[`data-combo-box-${c}`] = data_combo_box[c];
+					}
 						
 					if (!match_list_items.hasOwnProperty(group))
 					{
@@ -474,38 +483,48 @@ var combo_box = {
 						++counter;
 						
 						let search = text.match(pattern),
+							text_length = text.length,
+							highlight = '',
 							replace_range = [];
 							
 						for (let s of search)
 						{
-							let index_from = replace_range.length ? replace_range[replace_range.length - 1][0] + s.length : 0;
-							
-							replace_range.push([text.indexOf(s, index_from), text.indexOf(s, index_from) + s.length - 1]);
+							let index_from = replace_range.length ? replace_range[replace_range.length - 1][0] + s.length : 0,
+								first_occurrence = text.indexOf(s, index_from);
+								
+							replace_range.push([first_occurrence, first_occurrence + s.length - 1]);
 						}
-						console.log(replace_range);
-						let text_length = text.length,
-							highlight = '',
-							close_tag = NaN;
-	
+						
 						for (let i = 0; i < text_length; ++i)
 						{
 							if (replace_range.length)
 							{
-								if (!replace_range[0].includes(i))
+								if (replace_range[0].includes(i))
+								{
+									if (replace_range[0][0] === replace_range[0][1])
+									{
+										highlight += `<b>${text[i]}</b>`;
+										
+										replace_range.splice(0, 1);
+										
+										continue;
+									}
+									
+									if (i === replace_range[0][0])
+									{
+										highlight += `<b>${text[i]}`;
+									}
+									
+									if (i === replace_range[0][1])
+									{
+										highlight += `${text[i]}</b>`;
+										
+										replace_range.splice(0, 1);
+									}
+								}
+								else
 								{
 									highlight += text[i];
-								}
-								
-								if (i === replace_range[0][0])
-								{
-									highlight += `<b>${text[i]}`;
-								}
-								
-								if (i === replace_range[0][1])
-								{
-									highlight += `</b>`;
-									
-									replace_range.splice(0, 1);
 								}
 							}
 							else
@@ -513,34 +532,16 @@ var combo_box = {
 								highlight += text[i];
 							}
 						}
-						console.log(highlight);
-/*
-						for (let r of [...text])
-						{
-							if (replace_range.length && r === replace_range[0])
-							{
-								highlight += `<b>${r}`;
-								
-								close_tag = replace_range[0] + replace_range[1] - 1;
-								
-								replace_range.splice(0, 2);
-							}
-							else
-							{
-								highlight += r;
-							}
-							
-							if (r === close_tag)
-							{
-								highlight += '</b>';
-							}
-						}
-*/				
-						match_list_items[group].push(`<li data-value="${value}" class="highlight" id="step-${step}">${highlight}</li>`);
+			
+						data.text = highlight;
+						data['class'] = 'highlight';
+						data.id = `step-${step}`;
+
+						match_list_items[group].push(that.setListItem(data));
 					}
 					else
 					{
-						unmatch_list_items[group].push(`<li data-value="${value}">${text}</li>`);
+						unmatch_list_items[group].push(that.setListItem(data));
 					}
 				}
 
@@ -598,6 +599,17 @@ var combo_box = {
 				}
 			}
 		}, 100);
+	},
+	setListItem : function(data)
+	{
+		let text = data.text,
+			list = $('<li>');
+		
+		delete data.text;
+		
+		list.attr(data).html(text);
+		
+		return list[0].outerHTML;
 	},
 	stepThroughList : function()
 	{
