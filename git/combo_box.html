@@ -277,11 +277,6 @@ var combo_box = {
 				else
 				{
 					that.is_data_ready = that.config.inherit[id].is_data_ready;
-					
-					if (that.config.inherit[id].hasOwnProperty('callback') && Object.keys(that.data[id]).length)
-					{
-						that.is_data_ready = true;
-					}
 				}
 				
 				that.setList();
@@ -292,19 +287,6 @@ var combo_box = {
 		{
 			that.setInputData(this);
 		});
-	},
-	setInputData : function(that)
-	{
-		console.log(that);
-		let text = that.innerText,
-			value = $(that).data('value');
-		// populate with data-combo-box values if exist
-		$(`input#${this.staging.id}`).val(text).attr({'value' : text, 'data-value' : value});
-		$(`input#${this.staging.id}`).data('value', value).trigger('change');
-
-		document.getElementsByTagName('input')[this.staging.id].blur();
-
-		this.unsetList();
 	},
 	getOptionsFromJSON : function(object)
 	{
@@ -449,15 +431,14 @@ var combo_box = {
 						text = object[i].text,
 						data_combo_box = object[i].hasOwnProperty('data_combo_box') ? object[i].data_combo_box : {},
 						data = {
-							'data-value' : value,
-							text : text
+							'data-value' : value
 						};
 						
 					for (let c in data_combo_box)
 					{
 						data[`data-combo-box-${c}`] = data_combo_box[c];
 					}
-						
+					
 					if (!match_list_items.hasOwnProperty(group))
 					{
 						match_list_items[group] = [];
@@ -532,16 +513,14 @@ var combo_box = {
 								highlight += text[i];
 							}
 						}
-			
-						data.text = highlight;
-						data['class'] = 'highlight';
+						
 						data.id = `step-${step}`;
-
-						match_list_items[group].push(that.setListItem(data));
+						
+						match_list_items[group].push(that.setListItem(data, highlight, 'highlight'));
 					}
 					else
 					{
-						unmatch_list_items[group].push(that.setListItem(data));
+						unmatch_list_items[group].push(that.setListItem(data, text));
 					}
 				}
 
@@ -600,16 +579,39 @@ var combo_box = {
 			}
 		}, 100);
 	},
-	setListItem : function(data)
+	setListItem : function(data, text, css_class = null)
 	{
-		let text = data.text,
-			list = $('<li>');
-		
-		delete data.text;
+		let list = $('<li>');
 		
 		list.attr(data).html(text);
 		
+		if (css_class === 'highlight')
+		{
+			list.addClass(css_class);
+		}
+		
 		return list[0].outerHTML;
+	},
+	setInputData : function(that)
+	{
+		let data = {
+				value : that.innerText
+			},
+			pattern = new RegExp('^data');
+			
+			for (let i of that.attributes)
+			{
+				if (pattern.test(i.name))
+				{
+					data[i.name] = i.value;
+				}
+			}
+			
+		$(`input#${this.staging.id}`).attr(data).val(data.value);
+		
+		document.getElementsByTagName('input')[this.staging.id].blur();
+		
+		this.unsetList();
 	},
 	stepThroughList : function()
 	{
