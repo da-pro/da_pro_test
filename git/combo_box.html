@@ -23,8 +23,8 @@ var combo_box = {
 		initial : {
 			are_letters_symbols_allowed : true,
 			are_numbers_symbols_allowed : true,
-			are_punctuation_symbols_allowed : false,
 			are_arithmetic_symbols_allowed : false,
+			are_punctuation_symbols_allowed : false,
 			are_programming_symbols_allowed : false,
 			are_entities_symbols_allowed : false,
 			minimum_input_length : 1,
@@ -36,9 +36,9 @@ var combo_box = {
 	},
 	strings : {
 		search_message : 'въведи минимум % символа',
-		matched_result : 'съвпадения %',
+		empty_result : 'няма резултат',
 		found_result : 'намерени %',
-		empty_result : 'няма намерени'
+		matched_result : 'съвпадения %'
 	},
 	construct : function(object)
 	{
@@ -68,8 +68,8 @@ var combo_box = {
 					let allowed_symbols = '',
 						are_letters_symbols_allowed = that.config.initial.are_letters_symbols_allowed,
 						are_numbers_symbols_allowed = that.config.initial.are_numbers_symbols_allowed,
-						are_punctuation_symbols_allowed = that.config.initial.are_punctuation_symbols_allowed,
 						are_arithmetic_symbols_allowed = that.config.initial.are_arithmetic_symbols_allowed,
+						are_punctuation_symbols_allowed = that.config.initial.are_punctuation_symbols_allowed,
 						are_programming_symbols_allowed = that.config.initial.are_programming_symbols_allowed,
 						are_entities_symbols_allowed = that.config.initial.are_entities_symbols_allowed;
 						
@@ -84,11 +84,6 @@ var combo_box = {
 						}
 					}
 					
-					if (are_letters_symbols_allowed)
-					{
-						allowed_symbols += 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя';
-					}
-					
 					if (object[id].hasOwnProperty('are_numbers_symbols_allowed'))
 					{
 						if (typeof object[id].are_numbers_symbols_allowed === 'boolean')
@@ -98,27 +93,6 @@ var combo_box = {
 								are_numbers_symbols_allowed = !are_numbers_symbols_allowed;
 							}
 						}
-					}
-					
-					if (are_numbers_symbols_allowed)
-					{
-						allowed_symbols += '0123456789';
-					}
-					
-					if (object[id].hasOwnProperty('are_punctuation_symbols_allowed'))
-					{
-						if (typeof object[id].are_punctuation_symbols_allowed === 'boolean')
-						{
-							if (are_punctuation_symbols_allowed !== object[id].are_punctuation_symbols_allowed)
-							{
-								are_punctuation_symbols_allowed = !are_punctuation_symbols_allowed;
-							}
-						}
-					}
-					
-					if (are_punctuation_symbols_allowed)
-					{
-						allowed_symbols += `.,'":;!?`;
 					}
 					
 					if (object[id].hasOwnProperty('are_arithmetic_symbols_allowed'))
@@ -132,9 +106,15 @@ var combo_box = {
 						}
 					}
 					
-					if (are_arithmetic_symbols_allowed)
+					if (object[id].hasOwnProperty('are_punctuation_symbols_allowed'))
 					{
-						allowed_symbols += '+-*/<>()[]{}';
+						if (typeof object[id].are_punctuation_symbols_allowed === 'boolean')
+						{
+							if (are_punctuation_symbols_allowed !== object[id].are_punctuation_symbols_allowed)
+							{
+								are_punctuation_symbols_allowed = !are_punctuation_symbols_allowed;
+							}
+						}
 					}
 					
 					if (object[id].hasOwnProperty('are_programming_symbols_allowed'))
@@ -148,11 +128,6 @@ var combo_box = {
 						}
 					}
 					
-					if (are_programming_symbols_allowed)
-					{
-						allowed_symbols += '^~\\|';
-					}
-					
 					if (object[id].hasOwnProperty('are_entities_symbols_allowed'))
 					{
 						if (typeof object[id].are_entities_symbols_allowed === 'boolean')
@@ -164,10 +139,12 @@ var combo_box = {
 						}
 					}
 					
-					if (are_entities_symbols_allowed)
-					{
-						allowed_symbols += '@#$%&';
-					}
+					allowed_symbols += are_letters_symbols_allowed ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя' : '';
+					allowed_symbols += are_numbers_symbols_allowed ? '0123456789' : '';
+					allowed_symbols += are_arithmetic_symbols_allowed ? '+-*/<>()[]{}' : '';
+					allowed_symbols += are_punctuation_symbols_allowed ? `.,'":;!?` : '';
+					allowed_symbols += are_programming_symbols_allowed ? '^~|@#$' : '';
+					allowed_symbols += are_entities_symbols_allowed ? '%&' : '';
 					
 					that.config.inherit[id].allowed_symbols = new RegExp('[^'+that.escapeString(allowed_symbols)+']', 'g');
 					
@@ -249,8 +226,8 @@ var combo_box = {
 			{
 				if (['span', 'i'].includes(event.target.nodeName.toLowerCase()))
 				{
-					let is_collapse = $(this).find('span>i').hasClass('up'),
-						id = $(this).find('input').attr('id');
+					let id = $(this).find('input').attr('id'),
+						is_collapse = $(this).find('span>i').hasClass('up');
 						
 					that.unsetList();
 					
@@ -263,12 +240,12 @@ var combo_box = {
 			
 			$('body').on('focus', that.staging.input.join(','), function()
 			{
+				that.unsetList();
+				
 				let id = this.id;
 				
 				that.staging.id = id;
 				that.staging.value = this.value.trimStart();
-				
-				that.unsetList();
 				
 				if (that.config.inherit[id].is_select)
 				{
@@ -301,7 +278,7 @@ var combo_box = {
 			
 			data[counter] = {
 				group : group,
-				value : object[i].value,
+				value : String(object[i].value),
 				text : object[i].text
 			};
 
@@ -311,7 +288,7 @@ var combo_box = {
 			{
 				if (!['group', 'value', 'text'].includes(ii))
 				{
-					data_combo_box[ii] = object[i][ii];
+					data_combo_box[`data-combo-box-${ii}`] = object[i][ii];
 				}
 			}
 
@@ -343,7 +320,8 @@ var combo_box = {
 	getOptionsFromSelect : function(options_selector)
 	{
 		let data = {},
-			counter = 0;
+			counter = 0,
+			pattern = new RegExp('^data');
 
 		options_selector.each(function()
 		{
@@ -360,6 +338,21 @@ var combo_box = {
 							value : this.value,
 							text : this.innerText
 						};
+						
+					let data_combo_box = {};
+					
+					for (let i of this.attributes)
+					{
+						if (pattern.test(i.name))
+						{
+							data_combo_box[i.name.replace(pattern, 'data-combo-box')] = i.value;
+						}
+					}
+					
+					if (Object.keys(data_combo_box).length)
+					{
+						data[counter].data_combo_box = data_combo_box;
+					}
 				});
 			}
 			else
@@ -371,6 +364,21 @@ var combo_box = {
 					value : this.value,
 					text : this.innerText
 				};
+				
+				let data_combo_box = {};
+				
+				for (let i of this.attributes)
+				{
+					if (pattern.test(i.name))
+					{
+						data_combo_box[i.name.replace(pattern, 'data-combo-box')] = i.value;
+					}
+				}
+				
+				if (Object.keys(data_combo_box).length)
+				{
+					data[counter].data_combo_box = data_combo_box;
+				}
 			}
 		});
 
@@ -380,13 +388,19 @@ var combo_box = {
 	{
 		let that = this,
 			id = that.staging.id,
-			minimum_input_length = that.config.initial.minimum_input_length;
-		
+			minimum_input_length = that.config.initial.minimum_input_length,
+			active_list_item = that.config.initial.active_list_item;
+			
 		if (that.config.inherit[id].hasOwnProperty('minimum_input_length'))
 		{
 			minimum_input_length = that.config.inherit[id].minimum_input_length;
 		}
-
+		
+		if (that.config.inherit[id].hasOwnProperty('active_list_item'))
+		{
+			active_list_item = that.config.inherit[id].active_list_item;
+		}
+		
 		that.unsetList();
 		
 		let list = $('<ul>').attr({'tabindex' : -1, 'class' : 'combo-box', 'id' : id}).css('visibility', 'hidden');
@@ -427,7 +441,7 @@ var combo_box = {
 				for (let i in object)
 				{
 					let group = object[i].group,
-						value = String(object[i].value),
+						value = object[i].value,
 						text = object[i].text,
 						data_combo_box = object[i].hasOwnProperty('data_combo_box') ? object[i].data_combo_box : {},
 						data = {
@@ -436,7 +450,7 @@ var combo_box = {
 						
 					for (let c in data_combo_box)
 					{
-						data[`data-combo-box-${c}`] = data_combo_box[c];
+						data[c] = data_combo_box[c];
 					}
 					
 					if (!match_list_items.hasOwnProperty(group))
@@ -453,7 +467,9 @@ var combo_box = {
 					{
 						++step;
 						
-						match_list_items[group].push(`<li data-value="${value}" class="highlight" id="step-${step}">${text}</li>`);
+						data.id = `step-${step}`;
+						
+						match_list_items[group].push(that.setListItem(data, text, 'highlight'));
 						
 						continue;
 					}
@@ -523,81 +539,89 @@ var combo_box = {
 						unmatch_list_items[group].push(that.setListItem(data, text));
 					}
 				}
-
-				if (counter !== 0 || true)// rework condition for empty matches
+				
+				let message = that.strings.empty_result,
+					list_header = `<li class="header warning">${message}</li>`,
+					list_items = '';
+				
+				for (let i in match_list_items)
 				{
-					let found = that.strings.matched_result.replace('%', counter),// message for select or from db
-						list_found = `<li class="header">${found}</li>`,
-						list_items = '';
-						
-					for (let i in match_list_items)
+					if (i.length && match_list_items[i].length)
 					{
-						if (i.length && match_list_items[i].length)
-						{
-							list_items += `<li class="group">${i}</li>`;
-						}
-						
-						list_items += match_list_items[i].join('');
+						list_items += `<li class="group">&darr; ${i}</li>`;
 					}
 					
-					if (that.config.inherit[id].is_select)
+					list_items += match_list_items[i].join('');
+				}
+				
+				if (counter > 0)
+				{
+					message = that.strings.found_result.replace('%', counter);
+					list_header = `<li class="header">${message}</li>`;
+				}
+				
+				if (that.config.inherit[id].is_select)
+				{
+					message = that.strings.matched_result.replace('%', counter);
+					list_header = `<li class="header">${message}</li>`;
+					
+					$(`input#${id}`).parent().find('span>i').addClass('up');
+					
+					for (let i in unmatch_list_items)
 					{
-						for (let i in unmatch_list_items)
+						if (i.length && unmatch_list_items[i].length)
 						{
-							if (i.length && unmatch_list_items[i].length)
-							{
-								list_items += `<li class="group">${i}</li>`;
-							}
+							list_items += `<li class="group">&darr; ${i}</li>`;
+						}
+						
+						for (let ii of unmatch_list_items[i])
+						{
+							++step;
 							
-							for (let ii of unmatch_list_items[i])
-							{
-								++step;
-								
-								list_items += $(ii).attr('id', `step-${step}`)[0].outerHTML;
-							}
+							list_items += ii.attr('id', `step-${step}`)[0].outerHTML;
 						}
 					}
-
-					list.html(list_found+list_items);
-					
-					that.list.html = list;
-					that.list.size = that.config.inherit[id].is_select ? Object.keys(object).length : counter;
-					
-					$(`input#${id}`).after(list);
-					
-					that.setOrientation();
-					
-					if (that.config.inherit[id].is_select)
-					{
-						$(`input#${id}`).parent().find('span>i').addClass('up');
-					}
 				}
-				else
+				
+				list.html(list_header+list_items);
+				
+				that.list.html = list;
+				that.list.size = that.config.inherit[id].is_select ? Object.keys(object).length : counter;
+				
+				if (that.list.size === 1)
 				{
-					that.list.step = 0;
+					that.list.step = 1;
+					that.list.html.find('li#step-1').addClass(active_list_item);
 				}
+				
+				$(`input#${id}`).after(list);
+				
+				that.setOrientation();
 			}
 		}, 100);
 	},
 	setListItem : function(data, text, css_class = null)
 	{
-		let list = $('<li>');
+		let list_item = $('<li>');
 		
-		list.attr(data).html(text);
+		list_item.attr(data).html(text);
 		
-		if (css_class === 'highlight')
+		if (css_class === null)
 		{
-			list.addClass(css_class);
+			return list_item;
 		}
 		
-		return list[0].outerHTML;
+		list_item.addClass(css_class);
+		
+		return list_item[0].outerHTML;
 	},
 	setInputData : function(that)
 	{
 		let data = {
+				spellcheck : false,
 				value : that.innerText
 			},
-			pattern = new RegExp('^data');
+			pattern = new RegExp('^data-');
 			
 			for (let i of that.attributes)
 			{
@@ -623,13 +647,8 @@ var combo_box = {
 			{
 				active_list_item = this.config.inherit[this.staging.id].active_list_item;
 			}
-			
-			if (this.list.size === 1)
-			{
-				this.list.step = 1;
-				this.list.html[0].find('li#step-1').addClass(active_list_item);
-			}
-			else
+
+			if (this.list.size !== 0)
 			{
 				this.list.html.children().removeClass(active_list_item);
 
