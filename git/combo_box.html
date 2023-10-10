@@ -29,8 +29,7 @@ var combo_box = {
 			are_entities_symbols_allowed : false,
 			minimum_input_length : 1,
 			active_list : '',
-			active_list_item : 'active',
-			json : null
+			active_list_item : 'active'
 		},
 		inherit : {}
 	},
@@ -143,8 +142,8 @@ var combo_box = {
 					allowed_symbols += are_numbers_symbols_allowed ? '0123456789' : '';
 					allowed_symbols += are_arithmetic_symbols_allowed ? '+-*/<>()[]{}' : '';
 					allowed_symbols += are_punctuation_symbols_allowed ? `.,'":;!?` : '';
-					allowed_symbols += are_programming_symbols_allowed ? '^~|@#$' : '';
-					allowed_symbols += are_entities_symbols_allowed ? '%&' : '';
+					allowed_symbols += are_programming_symbols_allowed ? '^~|@#' : '';
+					allowed_symbols += are_entities_symbols_allowed ? '$%&' : '';
 					
 					that.config.inherit[id].allowed_symbols = new RegExp('[^'+that.escapeString(allowed_symbols)+']', 'g');
 					
@@ -240,12 +239,12 @@ var combo_box = {
 			
 			$('body').on('focus', that.staging.input.join(','), function()
 			{
-				that.unsetList();
-				
 				let id = this.id;
 				
 				that.staging.id = id;
 				that.staging.value = this.value.trimStart();
+				
+				that.unsetList();
 				
 				if (that.config.inherit[id].is_select)
 				{
@@ -277,9 +276,9 @@ var combo_box = {
 			let group = object[i].hasOwnProperty('group') ? object[i].group : '';
 			
 			data[counter] = {
-				group : group,
+				group : String(group),
 				value : String(object[i].value),
-				text : object[i].text
+				text : String(object[i].text)
 			};
 
 			let data_combo_box = {};
@@ -334,9 +333,9 @@ var combo_box = {
 					++counter;
 
 					data[counter] = {
-							group : group,
-							value : this.value,
-							text : this.innerText
+							group : String(group),
+							value : String(this.value),
+							text : String(this.innerText)
 						};
 						
 					let data_combo_box = {};
@@ -361,8 +360,8 @@ var combo_box = {
 
 				data[counter] = {
 					group : '',
-					value : this.value,
-					text : this.innerText
+					value : String(this.value),
+					text : String(this.innerText)
 				};
 				
 				let data_combo_box = {};
@@ -388,22 +387,19 @@ var combo_box = {
 	{
 		let that = this,
 			id = that.staging.id,
-			minimum_input_length = that.config.initial.minimum_input_length,
-			active_list_item = that.config.initial.active_list_item;
+			minimum_input_length = that.config.initial.minimum_input_length;
 			
 		if (that.config.inherit[id].hasOwnProperty('minimum_input_length'))
 		{
 			minimum_input_length = that.config.inherit[id].minimum_input_length;
 		}
 		
-		if (that.config.inherit[id].hasOwnProperty('active_list_item'))
-		{
-			active_list_item = that.config.inherit[id].active_list_item;
-		}
-		
-		that.unsetList();
-		
 		let list = $('<ul>').attr({'tabindex' : -1, 'class' : 'combo-box', 'id' : id}).css('visibility', 'hidden');
+		
+		if ($(`ul#${id}`).length)
+		{
+			list = $(`ul#${id}`);
+		}
 		
 		if (minimum_input_length > that.staging.value.length && !that.config.inherit[id].is_select)
 		{
@@ -419,7 +415,7 @@ var combo_box = {
 			
 			return;
 		}
-
+		
 		let set_interval = setInterval(function()
 		{
 			if (that.is_data_ready)
@@ -436,8 +432,17 @@ var combo_box = {
 					unmatch_list_items = {},
 					step = 0,
 					counter = 0,
-					pattern = new RegExp(that.escapeString(that.staging.value), 'gi');
+					pattern = new RegExp(that.escapeString(that.staging.value), 'gi'),
+					active_list_item = that.config.initial.active_list_item,
+					message = that.strings.empty_result,
+					list_header = `<li class="header warning">${message}</li>`,
+					list_items = '';
 					
+				if (that.config.inherit[id].hasOwnProperty('active_list_item'))
+				{
+					active_list_item = that.config.inherit[id].active_list_item;
+				}
+				
 				for (let i in object)
 				{
 					let group = object[i].group,
@@ -469,7 +474,7 @@ var combo_box = {
 						
 						data.id = `step-${step}`;
 						
-						match_list_items[group].push(that.setListItem(data, text, 'highlight'));
+						list_items += that.setListItem(data, text, 'highlight');
 						
 						continue;
 					}
@@ -486,7 +491,7 @@ var combo_box = {
 							
 						for (let s of search)
 						{
-							let index_from = replace_range.length ? replace_range[replace_range.length - 1][0] + s.length : 0,
+							let index_from = replace_range.length ? replace_range[replace_range.length - 1][1] : 0,
 								first_occurrence = text.indexOf(s, index_from);
 								
 							replace_range.push([first_occurrence, first_occurrence + s.length - 1]);
@@ -510,6 +515,8 @@ var combo_box = {
 									if (i === replace_range[0][0])
 									{
 										highlight += `<b>${text[i]}`;
+										
+										continue;
 									}
 									
 									if (i === replace_range[0][1])
@@ -540,24 +547,20 @@ var combo_box = {
 					}
 				}
 				
-				let message = that.strings.empty_result,
-					list_header = `<li class="header warning">${message}</li>`,
-					list_items = '';
-				
-				for (let i in match_list_items)
-				{
-					if (i.length && match_list_items[i].length)
-					{
-						list_items += `<li class="group">&darr; ${i}</li>`;
-					}
-					
-					list_items += match_list_items[i].join('');
-				}
-				
 				if (counter > 0)
 				{
 					message = that.strings.found_result.replace('%', counter);
 					list_header = `<li class="header">${message}</li>`;
+					
+					for (let i in match_list_items)
+					{
+						if (i.length && match_list_items[i].length)
+						{
+							list_items += `<li class="group">&darr; ${i}</li>`;
+						}
+						
+						list_items += match_list_items[i].join('');
+					}
 				}
 				
 				if (that.config.inherit[id].is_select)
@@ -593,6 +596,21 @@ var combo_box = {
 					that.list.step = 1;
 					that.list.html.find('li#step-1').addClass(active_list_item);
 				}
+				else
+				{
+					list.children('.highlight').each(function()
+					{
+						if (that.staging.value.toLowerCase() === this.innerText.toLowerCase())
+						{
+							let step = this.id.split('-')[1];
+							
+							that.list.step = parseInt(step, 10);
+							that.list.html.find(`li#step-${step}`).addClass(active_list_item);
+							
+							return false;
+						}
+					});
+				}
 				
 				$(`input#${id}`).after(list);
 				
@@ -621,7 +639,7 @@ var combo_box = {
 				spellcheck : false,
 				value : that.innerText
 			},
-			pattern = new RegExp('^data-');
+			pattern = new RegExp('^data');
 			
 			for (let i of that.attributes)
 			{
@@ -727,7 +745,6 @@ var combo_box = {
 	{
 		if (combo_box.staging.id.length)
 		{
-			//console.log($(`ul#${combo_box.staging.id}`));
 			if ($(`input#${combo_box.staging.id}`).length && $(`ul#${combo_box.staging.id}`).length)
 			{
 				let window_height = parseInt($(window).height(), 10),
@@ -755,7 +772,8 @@ var combo_box = {
 	{
 		$(document).on('keyup', function(event)
 		{
-			let system_keys = [
+			let that = combo_box,
+				system_keys = [
 				16,// Shift
 				17,// Control
 				18,// Alt
@@ -783,12 +801,13 @@ var combo_box = {
 			
 			let focused_form_element_id = $('input:focus').attr('id');
 
-			if (focused_form_element_id === undefined || !combo_box.staging.input.includes(`input#${focused_form_element_id}`))
+			if (focused_form_element_id === undefined || !that.staging.input.includes(`input#${focused_form_element_id}`))
 			{
 				return;
 			}
-
-			let value = $(`input#${combo_box.staging.id}`).val().trimStart(),
+			
+			let id = that.staging.id,
+				value = $(`input#${id}`).val().trimStart(),
 				review_allowed_keys = true,
 				remove_keys = [
 					8,// Backspace
@@ -802,56 +821,50 @@ var combo_box = {
 
 			if (review_allowed_keys)
 			{
-				value = value.replace(combo_box.config.inherit[combo_box.staging.id].allowed_symbols, '');
+				value = value.replace(that.config.inherit[id].allowed_symbols, '');
 				
-				$(`input#${combo_box.staging.id}`).val(value);
+				$(`input#${id}`).val(value);
 			}
 			
-			let minimum_input_length = combo_box.config.initial.minimum_input_length,
+			let minimum_input_length = that.config.initial.minimum_input_length,
 				input_length = value.length;
 
-				if (combo_box.config.inherit[combo_box.staging.id].hasOwnProperty('minimum_input_length'))
+				if (that.config.inherit[id].hasOwnProperty('minimum_input_length'))
 				{
-					minimum_input_length = combo_box.config.inherit[combo_box.staging.id].minimum_input_length;
+					minimum_input_length = that.config.inherit[id].minimum_input_length;
 				}
 
 				if (input_length >= minimum_input_length)
 				{
-					combo_box.staging.value = value;
-				}
-				else
-				{
-					combo_box.staging.value = '';
-				}
-				
-				combo_box.setList();
-/*
-				return;
-				if (input_length >= minimum_input_length)
-				{
-					combo_box.input_characters = $('input#'+combo_box.focused_input).val().trim();
-
-					if (combo_box.custom_config[combo_box.focused_input].hasOwnProperty('is_data_ready'))
+					that.staging.value = value;
+					
+					if (that.config.inherit[id].hasOwnProperty('is_data_ready'))
 					{
-						if (!combo_box.custom_config[combo_box.focused_input].is_data_ready)
+						if (!that.config.inherit[id].is_data_ready)
 						{
-							console.log(combo_box.custom_config[combo_box.focused_input]);
-							combo_box.getOptionsFromDatabase(combo_box.custom_config[combo_box.focused_input].callback());
+							that.getOptionsFromDatabase(that.config.inherit[id].callback());
 						}
 					}
 				}
-*/
+				else
+				{
+					that.staging.value = '';
+				}
+				
+				that.setList();
 		});
 	}(),
 	keydown : function()
 	{
 		$(document).on('keydown', function(event)
 		{
+			let that = combo_box;
+			
 			if (event.which === 13)
 			{
-				if (combo_box.list.step !== 0)
+				if (that.list.step !== 0)
 				{
-					combo_box.setInputData(document.getElementsByTagName('li')[`step-${combo_box.list.step}`]);
+					that.setInputData(document.getElementsByTagName('li')[`step-${that.list.step}`]);
 				}
 				
 				return;
@@ -859,25 +872,25 @@ var combo_box = {
 			
 			if (event.which === 38)
 			{
-				combo_box.press_event.up = true;
-				combo_box.press_event.down = false;
-				combo_box.stepThroughList();
+				that.press_event.up = true;
+				that.press_event.down = false;
+				that.stepThroughList();
 				
 				return;
 			}
 			
 			if (event.which === 40)
 			{
-				combo_box.press_event.down = true;
-				combo_box.press_event.up = false;
-				combo_box.stepThroughList();
+				that.press_event.down = true;
+				that.press_event.up = false;
+				that.stepThroughList();
 				
 				return;
 			}
 			
 			if (event.which === 27)
 			{
-				combo_box.unsetList();
+				that.unsetList();
 			}
 		});
 	}()
