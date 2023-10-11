@@ -42,11 +42,11 @@ var combo_box = {
 	construct : function(object)
 	{
 		let that = this;
-		
+
 		if (Object.keys(object).length)
 		{
 			let css_class_name_pattern = new RegExp('^[a-z_]{1}[a-z0-9-_]+$', 'i');
-			
+
 			for (let id in object)
 			{
 				if (object.hasOwnProperty(id))
@@ -55,15 +55,15 @@ var combo_box = {
 					{
 						continue;
 					}
-					
+
 					that.data[id] = {};
 					that.config.inherit[id] = {
 						is_select : false
 					};
-					
+
 					that.staging.input.push(`input#${id}`);
 					that.staging.list.push(`ul#${id}`);
-					
+
 					let allowed_symbols = '',
 						are_letters_symbols_allowed = that.config.initial.are_letters_symbols_allowed,
 						are_numbers_symbols_allowed = that.config.initial.are_numbers_symbols_allowed,
@@ -71,7 +71,7 @@ var combo_box = {
 						are_punctuation_symbols_allowed = that.config.initial.are_punctuation_symbols_allowed,
 						are_programming_symbols_allowed = that.config.initial.are_programming_symbols_allowed,
 						are_entities_symbols_allowed = that.config.initial.are_entities_symbols_allowed;
-						
+
 					if (object[id].hasOwnProperty('are_letters_symbols_allowed'))
 					{
 						if (typeof object[id].are_letters_symbols_allowed === 'boolean')
@@ -82,7 +82,7 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					if (object[id].hasOwnProperty('are_numbers_symbols_allowed'))
 					{
 						if (typeof object[id].are_numbers_symbols_allowed === 'boolean')
@@ -93,7 +93,7 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					if (object[id].hasOwnProperty('are_arithmetic_symbols_allowed'))
 					{
 						if (typeof object[id].are_arithmetic_symbols_allowed === 'boolean')
@@ -104,7 +104,7 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					if (object[id].hasOwnProperty('are_punctuation_symbols_allowed'))
 					{
 						if (typeof object[id].are_punctuation_symbols_allowed === 'boolean')
@@ -115,7 +115,7 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					if (object[id].hasOwnProperty('are_programming_symbols_allowed'))
 					{
 						if (typeof object[id].are_programming_symbols_allowed === 'boolean')
@@ -126,7 +126,7 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					if (object[id].hasOwnProperty('are_entities_symbols_allowed'))
 					{
 						if (typeof object[id].are_entities_symbols_allowed === 'boolean')
@@ -137,16 +137,16 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					allowed_symbols += are_letters_symbols_allowed ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя' : '';
 					allowed_symbols += are_numbers_symbols_allowed ? '0123456789' : '';
 					allowed_symbols += are_arithmetic_symbols_allowed ? '+-*/<>()[]{}' : '';
 					allowed_symbols += are_punctuation_symbols_allowed ? `.,'":;!?` : '';
 					allowed_symbols += are_programming_symbols_allowed ? '^~|@#' : '';
 					allowed_symbols += are_entities_symbols_allowed ? '$%&' : '';
-					
+
 					that.config.inherit[id].allowed_symbols = new RegExp('[^'+that.escapeString(allowed_symbols)+']', 'g');
-					
+
 					if (object[id].hasOwnProperty('minimum_input_length'))
 					{
 						if (typeof object[id].minimum_input_length === 'number')
@@ -157,7 +157,7 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					if (object[id].hasOwnProperty('active_list'))
 					{
 						if (typeof object[id].active_list === 'string')
@@ -168,7 +168,7 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					if (object[id].hasOwnProperty('active_list_item'))
 					{
 						if (typeof object[id].active_list_item === 'string')
@@ -182,7 +182,7 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					if (object[id].hasOwnProperty('json'))
 					{
 						if (object[id].json.hasOwnProperty('is_data_ready') && object[id].json.hasOwnProperty('data'))
@@ -205,13 +205,13 @@ var combo_box = {
 					else
 					{
 						let selector = $(`select#${id}`);
-						
+
 						if (selector.length)
 						{
 							selector.hide();
-							
+
 							that.data[id] = that.getOptionsFromSelect(selector.children());
-							
+
 							that.config.inherit[id].is_select = true;
 						}
 					}
@@ -227,25 +227,25 @@ var combo_box = {
 				{
 					let id = $(this).find('input').attr('id'),
 						is_collapse = $(this).find('span>i').hasClass('up');
-						
+
 					that.unsetList();
-					
+
 					if (!is_collapse)
 					{
 						$(`input#${id}`).focus();
 					}
 				}
 			});
-			
+
 			$('body').on('focus', that.staging.input.join(','), function()
 			{
 				let id = this.id;
-				
+
 				that.staging.id = id;
 				that.staging.value = this.value.trimStart();
-				
+
 				that.unsetList();
-				
+
 				if (that.config.inherit[id].is_select)
 				{
 					that.is_data_ready = true;
@@ -254,11 +254,11 @@ var combo_box = {
 				{
 					that.is_data_ready = that.config.inherit[id].is_data_ready;
 				}
-				
+
 				that.setList();
 			});
 		}
-		
+
 		$('body').on('click focus', `ul[id^=${that.prefix}]>li:not(.header):not(.group)`, function()
 		{
 			that.setInputData(this);
@@ -274,7 +274,7 @@ var combo_box = {
 			++counter;
 
 			let group = object[i].hasOwnProperty('group') ? object[i].group : '';
-			
+
 			data[counter] = {
 				group : String(group),
 				value : String(object[i].value),
@@ -302,9 +302,9 @@ var combo_box = {
 	getOptionsFromDatabase : function(object)
 	{
 		let that = this;
-		
+
 		that.is_data_ready = false;
-		
+
 		let set_interval = setInterval(function()
 		{
 			if (object.is_data_ready)
@@ -337,9 +337,9 @@ var combo_box = {
 							value : String(this.value),
 							text : String(this.innerText)
 						};
-						
+
 					let data_combo_box = {};
-					
+
 					for (let i of this.attributes)
 					{
 						if (pattern.test(i.name))
@@ -347,7 +347,7 @@ var combo_box = {
 							data_combo_box[i.name.replace(pattern, 'data-combo-box')] = i.value;
 						}
 					}
-					
+
 					if (Object.keys(data_combo_box).length)
 					{
 						data[counter].data_combo_box = data_combo_box;
@@ -363,9 +363,9 @@ var combo_box = {
 					value : String(this.value),
 					text : String(this.innerText)
 				};
-				
+
 				let data_combo_box = {};
-				
+
 				for (let i of this.attributes)
 				{
 					if (pattern.test(i.name))
@@ -373,7 +373,7 @@ var combo_box = {
 						data_combo_box[i.name.replace(pattern, 'data-combo-box')] = i.value;
 					}
 				}
-				
+
 				if (Object.keys(data_combo_box).length)
 				{
 					data[counter].data_combo_box = data_combo_box;
@@ -388,45 +388,45 @@ var combo_box = {
 		let that = this,
 			id = that.staging.id,
 			minimum_input_length = that.config.initial.minimum_input_length;
-			
+
 		if (that.config.inherit[id].hasOwnProperty('minimum_input_length'))
 		{
 			minimum_input_length = that.config.inherit[id].minimum_input_length;
 		}
-		
+
 		let list = $('<ul>').attr({'tabindex' : -1, 'class' : 'combo-box', 'id' : id}).css('visibility', 'hidden');
-		
+
 		if ($(`ul#${id}`).length)
 		{
 			list = $(`ul#${id}`);
 		}
-		
+
 		if (minimum_input_length > that.staging.value.length && !that.config.inherit[id].is_select)
 		{
 			let search_message = (minimum_input_length > 1) ? that.strings.search_message : that.strings.search_message.slice(0, -1);
-			
+
 			search_message = search_message.replace('%', minimum_input_length);
-			
+
 			list.html(`<li class="header warning">${search_message}</li>`);
-			
+
 			$(`input#${id}`).after(list);
-			
+
 			that.setOrientation();
-			
+
 			return;
 		}
-		
+
 		let set_interval = setInterval(function()
 		{
 			if (that.is_data_ready)
 			{
 				clearInterval(set_interval);
-				
+
 				if (that.config.inherit[id].hasOwnProperty('active_list'))
 				{
 					list.addClass(that.config.inherit[id].active_list);
 				}
-				
+
 				let object = that.data[id],
 					match_list_items = {},
 					unmatch_list_items = {},
@@ -437,12 +437,12 @@ var combo_box = {
 					message = that.strings.empty_result,
 					list_header = `<li class="header warning">${message}</li>`,
 					list_items = '';
-					
+
 				if (that.config.inherit[id].hasOwnProperty('active_list_item'))
 				{
 					active_list_item = that.config.inherit[id].active_list_item;
 				}
-				
+
 				for (let i in object)
 				{
 					let group = object[i].group,
@@ -452,51 +452,51 @@ var combo_box = {
 						data = {
 							'data-value' : value
 						};
-						
+
 					for (let c in data_combo_box)
 					{
 						data[c] = data_combo_box[c];
 					}
-					
+
+					if (!group.length && !value.length)
+					{
+						++step;
+
+						data.id = `step-${step}`;
+
+						list_items += that.setListItem(data, text, 'highlight');
+
+						continue;
+					}
+
 					if (!match_list_items.hasOwnProperty(group))
 					{
 						match_list_items[group] = [];
 					}
-					
+
 					if (!unmatch_list_items.hasOwnProperty(group))
 					{
 						unmatch_list_items[group] = [];
-					}
-					
-					if (!group.length && !value.length)
-					{
-						++step;
-						
-						data.id = `step-${step}`;
-						
-						list_items += that.setListItem(data, text, 'highlight');
-						
-						continue;
 					}
 
 					if (pattern.test(text) && that.staging.value.length)
 					{
 						++step;
 						++counter;
-						
+
 						let search = text.match(pattern),
 							text_length = text.length,
 							highlight = '',
 							replace_range = [];
-							
+
 						for (let s of search)
 						{
 							let index_from = replace_range.length ? replace_range[replace_range.length - 1][1] : 0,
 								first_occurrence = text.indexOf(s, index_from);
-								
+
 							replace_range.push([first_occurrence, first_occurrence + s.length - 1]);
 						}
-						
+
 						for (let i = 0; i < text_length; ++i)
 						{
 							if (replace_range.length)
@@ -506,23 +506,23 @@ var combo_box = {
 									if (replace_range[0][0] === replace_range[0][1])
 									{
 										highlight += `<b>${text[i]}</b>`;
-										
+
 										replace_range.splice(0, 1);
-										
+
 										continue;
 									}
-									
+
 									if (i === replace_range[0][0])
 									{
 										highlight += `<b>${text[i]}`;
-										
+
 										continue;
 									}
-									
+
 									if (i === replace_range[0][1])
 									{
 										highlight += `${text[i]}</b>`;
-										
+
 										replace_range.splice(0, 1);
 									}
 								}
@@ -536,9 +536,9 @@ var combo_box = {
 								highlight += text[i];
 							}
 						}
-						
+
 						data.id = `step-${step}`;
-						
+
 						match_list_items[group].push(that.setListItem(data, highlight, 'highlight'));
 					}
 					else
@@ -546,51 +546,51 @@ var combo_box = {
 						unmatch_list_items[group].push(that.setListItem(data, text));
 					}
 				}
-				
+
 				if (counter > 0)
 				{
 					message = that.strings.found_result.replace('%', counter);
 					list_header = `<li class="header">${message}</li>`;
-					
+
 					for (let i in match_list_items)
 					{
 						if (i.length && match_list_items[i].length)
 						{
 							list_items += `<li class="group">&darr; ${i}</li>`;
 						}
-						
+
 						list_items += match_list_items[i].join('');
 					}
 				}
-				
+
 				if (that.config.inherit[id].is_select)
 				{
 					message = that.strings.matched_result.replace('%', counter);
 					list_header = `<li class="header">${message}</li>`;
-					
+
 					$(`input#${id}`).parent().find('span>i').addClass('up');
-					
+
 					for (let i in unmatch_list_items)
 					{
 						if (i.length && unmatch_list_items[i].length)
 						{
 							list_items += `<li class="group">&darr; ${i}</li>`;
 						}
-						
+
 						for (let ii of unmatch_list_items[i])
 						{
 							++step;
-							
+
 							list_items += ii.attr('id', `step-${step}`)[0].outerHTML;
 						}
 					}
 				}
-				
+
 				list.html(list_header+list_items);
-				
+
 				that.list.html = list;
 				that.list.size = that.config.inherit[id].is_select ? Object.keys(object).length : counter;
-				
+
 				if (that.list.size === 1)
 				{
 					that.list.step = 1;
@@ -603,17 +603,17 @@ var combo_box = {
 						if (that.staging.value.toLowerCase() === this.innerText.toLowerCase())
 						{
 							let step = this.id.split('-')[1];
-							
+
 							that.list.step = parseInt(step, 10);
 							that.list.html.find(`li#step-${step}`).addClass(active_list_item);
-							
+
 							return false;
 						}
 					});
 				}
-				
+
 				$(`input#${id}`).after(list);
-				
+
 				that.setOrientation();
 			}
 		}, 100);
@@ -621,16 +621,16 @@ var combo_box = {
 	setListItem : function(data, text, css_class = null)
 	{
 		let list_item = $('<li>');
-		
+
 		list_item.attr(data).html(text);
-		
+
 		if (css_class === null)
 		{
 			return list_item;
 		}
-		
+
 		list_item.addClass(css_class);
-		
+
 		return list_item[0].outerHTML;
 	},
 	setInputData : function(that)
@@ -640,7 +640,7 @@ var combo_box = {
 				value : that.innerText
 			},
 			pattern = new RegExp('^data');
-			
+
 			for (let i of that.attributes)
 			{
 				if (pattern.test(i.name))
@@ -648,71 +648,73 @@ var combo_box = {
 					data[i.name] = i.value;
 				}
 			}
-			
+
 		$(`input#${this.staging.id}`).attr(data).val(data.value);
-		
+
 		document.getElementsByTagName('input')[this.staging.id].blur();
-		
+
 		this.unsetList();
 	},
 	stepThroughList : function()
 	{
-		if (this.list.size)
-		{
-			let active_list_item = this.config.initial.active_list_item;
+		let that = this,
+			id = that.staging.id,
+			html = that.list.html,
+			size = that.list.size,
+			step = that.list.step;
 
-			if (this.config.inherit[this.staging.id].hasOwnProperty('active_list_item'))
+		if (size)
+		{
+			let active_list_item = that.config.initial.active_list_item;
+
+			if (that.config.inherit[id].hasOwnProperty('active_list_item'))
 			{
-				active_list_item = this.config.inherit[this.staging.id].active_list_item;
+				active_list_item = that.config.inherit[id].active_list_item;
 			}
 
-			if (this.list.size !== 0)
+			html.children().removeClass(active_list_item);
+
+			let step_position;
+
+			if (that.press_event.down)
 			{
-				this.list.html.children().removeClass(active_list_item);
-
-				let step_position;
-
-				if (this.press_event.down)
+				if ([0, size].includes(step))
 				{
-					if ([0, this.list.size].includes(this.list.step))
-					{
-						step_position = 1;
-					}
-					else
-					{
-						step_position = this.list.step + 1;
-					}
-				}
-
-				if (this.press_event.up)
-				{
-					if ([0, 1].includes(this.list.step))
-					{
-						step_position = this.list.size;
-					}
-					else
-					{
-						step_position = this.list.step - 1;
-					}
-				}
-
-				this.list.step = step_position;
-
-				let parent_element_height = this.list.html[0].clientHeight,
-					element = this.list.html.find(`li#step-${step_position}`);
-
-				element.addClass(active_list_item);
-
-				let offset_top = element[0].offsetTop;
-
-				if (offset_top > parent_element_height)
-				{
-					this.list.html[0].scrollTop = offset_top + element[0].offsetHeight - parent_element_height;
+					step_position = 1;
 				}
 				else
 				{
-					this.list.html[0].scrollTop = 0;
+					step_position = step + 1;
 				}
+			}
+
+			if (that.press_event.up)
+			{
+				if ([0, 1].includes(step))
+				{
+					step_position = size;
+				}
+				else
+				{
+					step_position = step - 1;
+				}
+			}
+
+			that.list.step = step_position;
+
+			let parent_element_height = html[0].clientHeight,
+				element = html.find(`li#step-${step_position}`),
+				offset_top = element[0].offsetTop;
+
+			element.addClass(active_list_item);
+
+			if (offset_top > parent_element_height)
+			{
+				html[0].scrollTop = offset_top + element[0].offsetHeight - parent_element_height;
+			}
+			else
+			{
+				html[0].scrollTop = 0;
 			}
 		}
 	},
@@ -720,44 +722,46 @@ var combo_box = {
 	{
 		$(this.staging.list.join(',')).remove();
 		$('div.combo-box').find('span>i').removeClass('up');
-		
+
 		this.list.step = 0;
 	},
 	escapeString : function(string)
 	{
 		const escape_characters = [...'^$?+-*.[](){}|\\'];
-		
+
 		let escape_string = '';
-		
+
 		for (let i of [...string])
 		{
 			if (escape_characters.includes(i))
 			{
 				escape_string += '\\';
 			}
-			
+
 			escape_string += i;
 		}
-		
+
 		return escape_string;
 	},
 	setOrientation : function()
 	{
-		if (combo_box.staging.id.length)
+		let that = this,
+			id = that.staging.id;
+
+		if (id.length)
 		{
-			if ($(`input#${combo_box.staging.id}`).length && $(`ul#${combo_box.staging.id}`).length)
+			if ($(`input#${id}`).length && $(`ul#${id}`).length)
 			{
 				let window_height = parseInt($(window).height(), 10),
-					element_top = parseInt($(`input#${combo_box.staging.id}`).offset().top, 10) + 30;
+					element_top = parseInt($(`input#${id}`).offset().top, 10) + 30,
+					ul_position = 'down';
 
-				let ul_position = 'down';
-
-				if (window_height - (element_top - window.scrollY) <= $(`ul#${combo_box.staging.id}`)[0].offsetHeight)
+				if (window_height - (element_top - window.scrollY) <= $(`ul#${id}`)[0].offsetHeight)
 				{
 					ul_position = 'up';
 				}
 
-				$(`ul#${combo_box.staging.id}`).removeClass('down up').addClass(ul_position).css('visibility', 'visible');
+				$(`ul#${id}`).removeClass('down up').addClass(ul_position).css('visibility', 'visible');
 			}
 		}
 	},
@@ -793,19 +797,19 @@ var combo_box = {
 				144,// NumLock
 				145,// ScrollLock
 			];
-			
+
 			if (system_keys.includes(event.which))
 			{
 				return;
 			}
-			
+
 			let focused_form_element_id = $('input:focus').attr('id');
 
 			if (focused_form_element_id === undefined || !that.staging.input.includes(`input#${focused_form_element_id}`))
 			{
 				return;
 			}
-			
+
 			let id = that.staging.id,
 				value = $(`input#${id}`).val().trimStart(),
 				review_allowed_keys = true,
@@ -813,7 +817,7 @@ var combo_box = {
 					8,// Backspace
 					46,// Delete
 				];
-			
+
 			if (remove_keys.includes(event.which))
 			{
 				review_allowed_keys = false;
@@ -822,10 +826,10 @@ var combo_box = {
 			if (review_allowed_keys)
 			{
 				value = value.replace(that.config.inherit[id].allowed_symbols, '');
-				
+
 				$(`input#${id}`).val(value);
 			}
-			
+
 			let minimum_input_length = that.config.initial.minimum_input_length,
 				input_length = value.length;
 
@@ -837,7 +841,7 @@ var combo_box = {
 				if (input_length >= minimum_input_length)
 				{
 					that.staging.value = value;
-					
+
 					if (that.config.inherit[id].hasOwnProperty('is_data_ready'))
 					{
 						if (!that.config.inherit[id].is_data_ready)
@@ -850,7 +854,7 @@ var combo_box = {
 				{
 					that.staging.value = '';
 				}
-				
+
 				that.setList();
 		});
 	}(),
@@ -859,35 +863,35 @@ var combo_box = {
 		$(document).on('keydown', function(event)
 		{
 			let that = combo_box;
-			
+
 			if (event.which === 13)
 			{
 				if (that.list.step !== 0)
 				{
 					that.setInputData(document.getElementsByTagName('li')[`step-${that.list.step}`]);
 				}
-				
+
 				return;
 			}
-			
+
 			if (event.which === 38)
 			{
 				that.press_event.up = true;
 				that.press_event.down = false;
 				that.stepThroughList();
-				
+
 				return;
 			}
-			
+
 			if (event.which === 40)
 			{
 				that.press_event.down = true;
 				that.press_event.up = false;
 				that.stepThroughList();
-				
+
 				return;
 			}
-			
+
 			if (event.which === 27)
 			{
 				that.unsetList();
@@ -902,95 +906,91 @@ var combo_box = {
 <title>Combo Box</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="jquery.js"></script>
+<script src="combo_box.js"></script>
 </head>
 <body>
 <style>
-html, body, header, footer, section, article, nav, div, img, form, input, textarea, select, optgroup, option, label, table, thead, tbody, tfoot, tr, th, td, dl, dt, dd, ol, ul, li, pre, p, h1, h2, h3, h4, h5, h6, span, br, hr, a {margin:0; padding:0; border:0; vertical-align:baseline;}
-table {width:50%; text-align:center; border-collapse:separate; border-spacing:1px; cursor:default;}
-ol, ul {list-style:none;}
-h1, h2, h3, h4, h5, h6 {font-size:100%;}
-a {text-decoration:none; outline:none;}
+html, body, header, footer, section, article, nav, div, img, form, input, textarea, select, optgroup, option, label, table, dl, dt, dd, ol, ul, li, pre, p, h1, h2, h3, h4, h5, h6, span, i, b, br, hr, a {margin:0; padding:0; border:0;}
 /* CUSTOM */
 body {margin-top:200px; margin-bottom:800px;}
-form {width:320px; margin:20px auto 0;}
-input {width:100%; height:30px; margin:0 0 20px; padding:0 35px 0 5px; color:#333333; background:#bbeeff; font:14px 'Open Sans', sans-serif; border:1px solid #66ddff; border-radius:3px; box-sizing:border-box; display:block;}
-input:focus {background:#ffffff; outline:none;}
-ul.combo-box:focus {outline:none;}
-input:hover { cursor:pointer;}
-input:focus:hover {cursor:auto;}
-div.combo-box {position:relative;}
-div.combo-box>span {width:30px; height:30px; position:absolute; right:0; background:#bbeeff; border-radius:0 3px 3px 0; border:1px solid #66ddff;box-sizing:border-box;}
+form {width:320px; margin:0 auto; padding:10px; box-shadow:0 0 1px rgba(0, 0, 0, 0.8), 0 0 5px rgba(0, 0, 0, 0.6); border-radius:3px; box-sizing:border-box; display:grid; grid-template-columns:100%; grid-gap:10px 0;}
+input[type=text] {width:100%; height:30px; padding:0 5px; color:#333333; background:#bbeeff; font:14px sans-serif; border:1px solid #66ddff; border-radius:3px; box-sizing:border-box; display:block;}
+input[type=text]:focus {background:#ffffff; outline:none;}
+/* COMBO-BOX */
+div.combo-box {width:100%; position:relative;}
+div.combo-box>span {width:30px; height:30px; position:absolute; right:0; background:#bbeeff; border-radius:0 3px 3px 0; border:1px solid #66ddff; box-sizing:border-box;}
 div.combo-box>span:hover {cursor:pointer;}
-div.combo-box>span>i {border-style:solid; border-color:#242424; display:inline-block; padding:3px; position:absolute; right:10px;  transform: rotate(45deg); -webkit-transform: rotate(45deg);}
+div.combo-box>span>i {padding:3px; position:absolute; right:10px; border-style:solid; border-color:#333333; display:inline-block; transform:rotate(45deg); -webkit-transform:rotate(45deg);}
 div.combo-box>span>i.down {top:9px; border-width:0 2px 2px 0;}
 div.combo-box>span>i.up {top:13px; border-width:2px 0 0 2px;}
-input + ul {width:100%; height:auto; max-height:290px; padding:0; background:#cccccc; position:absolute; border-radius:3px; overflow-x:hidden; overflow-y:auto; display:grid; grid-template-columns:100%; row-gap:1px; border:1px solid #cccccc;box-sizing:border-box; z-index:1000;}
-input + ul.down {top:30px;}
-input + ul.up {bottom:30px;}
-ul > li {width:100%; padding:0 0 0 5px; color:#242424; background:#f0f0f0; font:14px/25px arial, sans-serif; white-space:nowrap; box-sizing:border-box;}
-ul.combo-box > li.custom {background:#00ffff; cursor:not-allowed;}
-ul.combo-box > li>b {font-weight:bold;}
-ul.combo-box > li.header {height:28px; position:sticky; top:0; background:#ffffff; font-size:11px; line-height:28px; font-weight:bold; cursor:default;}
-ul.combo-box > li.warning {padding:0; color:#ff3333; font-size:12px; font-weight:bold; text-align:center;}
-ul.combo-box > li.highlight {background:#fafafa; }
-ul.combo-box>li.optgroup {padding:0 0 0 15px; color:#ffffff; background:#666666; font-weight:bold; cursor:default;}
-ul.combo-box>li:not(.header):not(.optgroup):hover, ul.combo-box>li.active {background:#cccccc; cursor:pointer;}
+div.combo-box>span+input[type=text] {padding:0 35px 0 5px;}
+div.combo-box>input[type=text]:hover {cursor:pointer;}
+div.combo-box>input[type=text]:focus:hover {cursor:auto;}
+div.combo-box>input[type=text]+ul {width:100%; height:auto; max-height:290px; padding:0; position:absolute; background:#cccccc; border-radius:3px; border:1px solid #cccccc; box-sizing:border-box; display:grid; grid-template-columns:100%; row-gap:1px; overflow-x:hidden; overflow-y:auto; z-index:10000;}
+div.combo-box>input[type=text]+ul.down {top:30px;}
+div.combo-box>input[type=text]+ul.up {bottom:30px;}
+ul.combo-box:focus {outline:none;}
+ul.combo-box>li {width:100%; height:25px; padding:0 0 0 5px; color:#333333; background:#f0f0f0; font:14px/25px sans-serif; white-space:nowrap; box-sizing:border-box; list-style:none;}
+ul.combo-box>li.custom {background:#ff6666; cursor:not-allowed;}
+ul.combo-box>li>b {font-weight:bold;}
+ul.combo-box>li.header {height:28px; position:sticky; top:0; background:#ffffff; font-weight:bold; font-size:12px; line-height:28px; cursor:default;}
+ul.combo-box>li.warning {padding:0; color:#ff3333; text-align:center;}
+ul.combo-box>li.highlight {background:#fafafa;}
+ul.combo-box>li.group {padding:0 0 0 15px; color:#242424; background:linear-gradient(to right, #cccccc, #666666); font-weight:bold; cursor:default;}
+ul.combo-box>li:not(.header):not(.group):hover, ul.combo-box>li.active {background:#cccccc; cursor:pointer;}
 </style>
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <form>
-	<div class="combo-box" style="position:relative; width:100%;">
+	<div class="combo-box">
 		<span title="Покажи Автомобили"><i class="down"></i></span>
-		<input type="text" spellcheck="false" id="js-combo-box-cars">
-
-	<ul class="combo-box"  style="display:none">
-		<li class="header warning">няма резултат</li>
-		<li class="header">намерени 14</li>
-		<li>test</li>
-		<li>t<b>es</b>t</li>
-		<li>test</li>
-		<li>test</li>
-		<li>test</li>
-		<li class="optgroup">TEST</li>
-		<li>test</li>
-		<li>test</li>
-		<li>test</li>
-		<li>test</li>
-		<li>test</li>
-		<li>test</li>
-		<li>test</li>
-		<li>test</li>
-		<li>test</li>
-	</ul>
-
+		<input type="text" id="js-combo-box-cars">
+		<ul class="combo-box" style="display:none;">
+			<li class="header warning" style="display:none">няма резултат</li>
+			<li class="header">намерени 14</li>
+			<li>test</li>
+			<li>t<b>es</b>t</li>
+			<li>test</li>
+			<li>test</li>
+			<li>test</li>
+			<li class="group">TEST</li>
+			<li>test</li>
+			<li>test</li>
+			<li>test</li>
+			<li>test</li>
+			<li>test</li>
+			<li>test</li>
+			<li>test</li>
+			<li>test</li>
+		</ul>
 	</div>
-	<select id="js-combo-box-cars" style="display:none">
+	<select id="js-combo-box-cars" style="display:none;">
 		<option value="">избери</option>
 		<optgroup label="German">
-			<option value="100">TestovaTestova TestovaTestova</option>
+			<option value="100">TestovateStova tEstovaTestova</option>
 			<option value="1">Audi</option>
 			<option value="2">BMW XT series</option>
 			<option value="7">BMW bGT</option>
-			<option value="8">BMW 8</option>
+			<option value="8" data-test="asdasdasd">BMW 8</option>
 			<option value="9">BMW GT 9</option>
 			<option value="3">Mercedes</option>
-			<option value="5">Opel</option>
+			<option value="5" data-test="asda4545" data-drug-test="asdasd$$$$asd">Opel</option>
 			<option value="6">Volkswagen</option>
 		</optgroup>
 		<optgroup label="Italian">
-		<option value="4">Fiat</option>
+			<option value="4">Fiat</option>
 		</optgroup>
 		<optgroup label="French">
-		<option value="11">Citroen</option>
-		<option value="14400">Testova</option>
-		<option value="12">Peugeot</option>
-		<option value="13">Renault</option>
+			<option value="11">Citroen</option>
+			<option value="14" data-test="asdatrsadaasd">Te-st-ova</option>
+			<option value="12">Peugeot</option>
+			<option value="13">Renault</option>
 		</optgroup>
 	</select>
-	<div class="combo-box" style="position:relative; width:100%;">
+	<div class="combo-box">
 		<span title="Покажи Езици"><i class="down"></i></span>
-	<input type="text" id="js-combo-box-languages">
+		<input type="text" id="js-combo-box-languages">
 	</div>
-		<select id="js-combo-box-languages" style="display:none">
+	<select id="js-combo-box-languages" style="display:none">
 		<option value="3">JavaScript</option>
 		<option value="2">PHP</option>
 		<option value="4">Ruby</option>
@@ -1004,820 +1004,33 @@ ul.combo-box>li:not(.header):not(.optgroup):hover, ul.combo-box>li.active {backg
 		<option value="11">SQL</option>
 		<option value="12">MySQL</option>
 	</select>
-		<div class="combo-box" style="position:relative; width:100%;">
-	<input type="text" id="js-combo-box-cities">
+	<div class="combo-box">
+		<input type="text" id="js-combo-box-cities">
 	</div>
-	<input type="text" id="js-combo-box-names">
+	<div class="combo-box">
+		<input type="text" id="js-combo-box-names">
+	</div>
 </form>
 <script>
-var combo_box = {
-	selector_scheme : 'js-combo-box',// prefix
-	is_data_ready : false,
-	data : {},
-	input_fields : [],
-	input_characters : '',
-	focused_input : '',
-	config : {
-		are_mathematics_symbols_allowed : false,
-		are_punctuation_symbols_allowed : false,
-		minimum_input_length : 1,
-		found_message : 'намерени %',
-		matched_message : 'съвпадения %',
-		search_message : '\u043d\u0430\u043f\u0438\u0448\u0435\u0442\u0435 \u043c\u0438\u043d\u0438\u043c\u0443\u043c % \u0441\u0438\u043c\u0432\u043e\u043b\u0430',
-		empty_result : '\u043d\u044f\u043c\u0430 \u0440\u0435\u0437\u0443\u043b\u0442\u0430\u0442',
-		active_drop_down_list : '',
-		active_list_item : 'active',
-		json : null
-	},
-	custom_config : {},
-	strings : {
-		found_message : '',
-		matched_message : '',
-		search_message : '',
-		empty_result : ''
-	},
-	/*
-	config : {
-		initial : {},
-		inherit : {},
-	},
-	staging : {
-		id : '',
-		value : '',
-		input : [],// [input#js-combo-box, etc]
-		list : [],// [ul#js-combo-box, etc]
-	},
-	press_event : {
-		up : false,
-		down : false,
-		enter : false
-	},
-	list : {
-		html : '',// selector
-		step : 0,// pointer
-		size : 0// length
-	},
-	*/
-	events : {
-		press_up_arrow : false,
-		press_down_arrow : false,
-		press_enter : false
-	},
-	drop_down : {
-		selector : '',
-		length : 0,// ???
-		pointer : 0
-	},
-	construct : function(object)
-	{
-		if (Object.keys(object).length)
-		{
-			let css_class_name_pattern = new RegExp('^[a-z_]{1}[a-z0-9-_]+$', 'i');
-
-			for (let i in object)// let id
-			{
-				if (object.hasOwnProperty(i))
-				{
-					if (i.indexOf(this.selector_scheme) !== 0 || typeof document.getElementsByTagName('input')[i] === undefined)
-					{
-						continue;
-					}
-
-					this.data[i] = {};
-					this.custom_config[i] = {
-							is_select : false
-						};
-
-					this.input_fields.push(`input#${i}`);
-
-					if (object[i].hasOwnProperty('are_mathematics_symbols_allowed'))
-					{
-						if (typeof object[i].are_mathematics_symbols_allowed === 'boolean')
-						{
-							this.custom_config[i].are_mathematics_symbols_allowed = object[i].are_mathematics_symbols_allowed;
-						}
-					}
-
-					if (object[i].hasOwnProperty('are_punctuation_symbols_allowed'))
-					{
-						if (typeof object[i].are_punctuation_symbols_allowed === 'boolean')
-						{
-							this.custom_config[i].are_punctuation_symbols_allowed = object[i].are_punctuation_symbols_allowed;
-						}
-					}
-
-					if (object[i].hasOwnProperty('minimum_input_length'))
-					{
-						if (typeof object[i].minimum_input_length === 'number')
-						{
-							if (object[i].minimum_input_length > 0)
-							{
-								this.custom_config[i].minimum_input_length = object[i].minimum_input_length;
-							}
-						}
-					}
-
-					if (object[i].hasOwnProperty('active_drop_down_list'))
-					{
-						if (typeof object[i].active_drop_down_list === 'string')
-						{
-							if (css_class_name_pattern.test(object[i].active_drop_down_list))
-							{
-								this.custom_config[i].active_drop_down_list = object[i].active_drop_down_list;
-							}
-						}
-					}
-
-					if (object[i].hasOwnProperty('active_list_item'))// check different from header optgroup etc
-					{
-						if (typeof object[i].active_list_item === 'string')
-						{
-							if (css_class_name_pattern.test(object[i].active_list_item))
-							{
-								this.custom_config[i].active_list_item = object[i].active_list_item;
-							}
-						}
-					}
-
-					if (object[i].hasOwnProperty('json'))
-					{
-						if (object[i].json.hasOwnProperty('is_data_ready') && object[i].json.hasOwnProperty('data'))
-						{
-							if (typeof object[i].json.is_data_ready === 'boolean')
-							{
-								if (object[i].json.is_data_ready)
-								{
-									this.custom_config[i].is_data_ready = true;
-									this.data[i] = this.getOptionsFromJSON(object[i].json.data);
-								}
-								else
-								{
-
-									this.custom_config[i].is_data_ready = false;
-									this.custom_config[i].callback = object[i].json.data;
-								}
-							}
-						}
-					}
-					else
-					{
-						var selector = $('select#'+i);
-
-						if (selector.length)
-						{
-							selector.hide();
-
-							this.data[i] = this.getOptionsFromSelect(i, selector.children());
-
-							this.custom_config[i].is_select = true;
-						}
-					}
-				}
-			}
-
-			if (this.input_fields.length)
-			{
-				$('div.combo-box').on('click', function(event)
-				{
-					if (['span', 'i'].includes(event.target.nodeName.toLowerCase()))
-					{
-						let collapse = $(this).find('span>i').hasClass('up');
-
-						combo_box.removeDropDownList();
-
-						let id = $(this).find('input').attr('id');
-
-						combo_box.input_characters = $('input#'+id).val().trim();
-
-						if (!collapse)
-						{
-							$(this).find('input').trigger('focus');
-
-							combo_box.is_data_ready = true;
-							combo_box.focused_input = id;
-
-							combo_box.setDropDownList();
-						}
-					}
-				});
-
-				$('body').on('focus', this.input_fields.join(','), function()
-				{
-					combo_box.is_data_ready = false;
-					combo_box.focused_input = this.id;
-					combo_box.input_characters = this.value.trim();
-
-					combo_box.removeDropDownList();
-
-					if (combo_box.custom_config[combo_box.focused_input].is_select)
-					{
-						combo_box.is_data_ready = true;
-					}
-					else
-					{
-						if (combo_box.custom_config[combo_box.focused_input].hasOwnProperty('is_data_ready'))
-						{
-							combo_box.is_data_ready = true;
-						}
-					}
-
-					combo_box.setDropDownList();
-				});
-			}
-		}
-
-		$('body').on('click focus', 'ul[id^='+this.selector_scheme+'] > li:not(.header):not(.optgroup)', function()
-		{
-			var list_item_text = $(this).text(),
-				list_item_data_value = $(this).data('value');
-
-			// populate with data-combo-box values if exist
-			$('input#'+combo_box.focused_input).val(list_item_text).attr({'value' : list_item_text, 'data-value' : list_item_data_value});
-			$('input#'+combo_box.focused_input).data('value', list_item_data_value).trigger('change');
-
-			combo_box.removeDropDownList();
-		});
-	},
-	getOptionsFromJSON : function(data)
-	{
-		var i,
-			key_value_pair = {},// data
-			counter = 0;
-
-		for (i in data)
-		{
-			++counter;
-
-			key_value_pair[counter] = {
-				group : '',
-				value : data[i].key,
-				text : data[i].value
-			};
-
-			let more = {};
-
-			for (let ii in data[i])
-			{
-				if (!['key', 'value'].includes(ii))
-				{
-					more[ii] = data[i][ii];
-				}
-			}
-
-			if (Object.keys(more).length)
-			{
-				key_value_pair[counter].more = more;
-			}
-		}
-
-		return key_value_pair;
-	},
-	getOptionsFromDatabase : function(object)
-	{
-		this.is_data_ready = false;
-
-		var set_interval = setInterval(function()
-		{
-			if (object.is_data_ready)
-			{
-				clearInterval(set_interval);
-
-				combo_box.data[combo_box.focused_input] = combo_box.getOptionsFromJSON(object.data);
-
-				combo_box.is_data_ready = true;
-			}
-		}, 50);
-	},
-	getOptionsFromSelect : function(selector_id, options_selector)
-	{
-		var key_value_pair = {};// data
-		let counter = 0;
-
-		options_selector.each(function()
-		{
-			if ($(this)[0].tagName.toLowerCase() === 'optgroup')
-			{
-				let optgroup = $(this).attr('label');
-
-				$(this).children().each(function()
-				{
-					++counter;
-
-					key_value_pair[counter] = {
-							group : optgroup,
-							value : $(this).val(),
-							text : $(this).text()
-						};
-				});
-			}
-			else
-			{
-				++counter;
-
-				key_value_pair[counter] = {
-						group : '',
-						value : $(this).val(),
-						text : $(this).text()
-					};
-			}
-		});
-
-		return key_value_pair;
-	},
-	setDropDownList : function()
-	{
-		let minimum_input_length = this.config.minimum_input_length;
-
-		if (this.custom_config[this.focused_input].hasOwnProperty('minimum_input_length'))
-		{
-			minimum_input_length = this.custom_config[this.focused_input].minimum_input_length;
-		}
-
-		let drop_down = $('<ul>').attr({'id' : combo_box.focused_input, 'class' : 'combo-box'}).css('visibility', 'hidden');
-
-		if (minimum_input_length > combo_box.input_characters && !this.custom_config[this.focused_input].is_select)
-		{
-			let search_message = this.config.search_message.replace('%', minimum_input_length);
-
-			drop_down.html(`<li class="header warning">${search_message}</li>`);
-					$('input#'+combo_box.focused_input).after(drop_down);
-			combo_box.setOrientation();
-
-			return;
-		}
-		//
-//console.log(this.custom_config[this.focused_input].minimum_input_length);
-		/*
-function escapeString(string)
-{
-	const escape_characters = '^$?+*.[](){}|\\';
-
-	let escape_string = '';
-
-	for (let i in string)
-	{
-		if ([...escape_characters].includes(string[i]))
-		{
-			escape_string += '\\';
-		}
-
-		escape_string += string[i];
-	}
-
-	return escape_string;
-}
-		*/
-		var set_interval = setInterval(function()
-		{
-			if (combo_box.is_data_ready)
-			{
-				clearInterval(set_interval);
-
-				combo_box.removeDropDownList();
-
-				var i,
-					object = combo_box.data[combo_box.focused_input],
-					match_list_items = {},
-					unmatch_list_items = {},
-					pointer = 0,
-					counter = 0,
-					drop_down = $('<ul>').attr({'id' : combo_box.focused_input, 'class' : 'combo-box'}).css('visibility', 'hidden'),
-					escape_characters = ['?', '*', '+', '[', ']', '(', ')'],// `^$?+*.[](){}|\`
-					input_characters = (function()
-					{
-						var i,
-							escape_string = '';
-
-						for (i in combo_box.input_characters)
-						{
-							if ($.inArray(combo_box.input_characters[i], escape_characters) >= 0)
-							{
-								escape_string += '\\';
-							}
-
-							escape_string += combo_box.input_characters[i];
-						}
-
-						return escape_string;
-					})(),
-					pattern_input_characters = new RegExp(input_characters, 'ig');
-
-				if (combo_box.custom_config[combo_box.focused_input].hasOwnProperty('active_drop_down_list'))
-				{
-					drop_down.addClass(combo_box.custom_config[combo_box.focused_input].active_drop_down_list);
-				}
-
-				//$('input#'+combo_box.focused_input).focus();
-				$('input#'+combo_box.focused_input).after(drop_down);
-
-				for (i in object)
-				{
-					let group = object[i].group,
-						value = String(object[i].value),
-						string = object[i].text;
-
-					if (!match_list_items.hasOwnProperty(group))
-					{
-						match_list_items[group] = [];
-					}
-
-					if (!unmatch_list_items.hasOwnProperty(group))
-					{
-						unmatch_list_items[group] = [];
-					}
-
-					if (!group.length && !value.length)
-					{
-						++pointer;
-
-						match_list_items[group].push(`<li data-value="${value}" class="highlight" id="pointer-${pointer}">${string}</li>`);
-
-						continue;
-					}
-
-					if (pattern_input_characters.test(string) && input_characters.length)
-					{
-						++pointer;
-						++counter;
-
-						let search = string.match(pattern_input_characters),
-							replace_range = [];
-
-						for (let s of search)
-						{
-							let lower_s = s.toLocaleLowerCase(),
-								index_from = replace_range.length ? replace_range[replace_range.length - 2] + lower_s.length : 0;
-
-							replace_range.push(string.toLocaleLowerCase().indexOf(lower_s, index_from));
-							replace_range.push(lower_s.length);
-						}
-
-						let highlight = '',
-							close_tag = NaN;
-
-						for (let r = 0; r < string.length; ++r)// [...string]
-						{
-							if (replace_range.length && r === replace_range[0])
-							{
-								highlight += `<b>${string[r]}`;
-
-								close_tag = replace_range[0] + replace_range[1] - 1;
-
-								replace_range.splice(0, 2);
-							}
-							else
-							{
-								highlight += string[r];
-							}
-
-							if (r === close_tag)
-							{
-								highlight += '</b>';
-							}
-						}
-
-						match_list_items[group].push(`<li data-value="${value}" class="highlight" id="pointer-${pointer}">${highlight}</li>`);
-					}
-					else
-					{
-						unmatch_list_items[group].push(`<li data-value="${value}">${string}</li>`);
-					}
-				}
-
-				if (counter !== 0 || true)// rework condition for empty matches
-				{
-					combo_box.drop_down.length = combo_box.custom_config[combo_box.focused_input].is_select ? Object.keys(object).length : counter;
-					combo_box.drop_down.selector = drop_down;
-					let found = combo_box.config.found_message.replace('%', counter),// message for select or from db
-						list_found = `<li class="header">${found}</li>`,
-						list_items = '';
-
-					for (let i in match_list_items)
-					{
-						if (i.length && match_list_items[i].length)
-						{
-							list_items += `<li class="optgroup">${i}</li>`;
-						}
-
-						list_items += match_list_items[i].join('');
-					}
-
-					if (combo_box.custom_config[combo_box.focused_input].is_select)
-					{
-						for (let i in unmatch_list_items)
-						{
-							if (i.length && unmatch_list_items[i].length)
-							{
-								list_items += `<li class="optgroup">${i}</li>`;
-							}
-
-							for (let ii of unmatch_list_items[i])
-							{
-								++pointer;
-
-								list_items += $(ii).attr('id', `pointer-${pointer}`)[0].outerHTML;
-							}
-						}
-					}
-
-					drop_down.html(list_found+list_items);
-
-					combo_box.setOrientation();
-
-					if (combo_box.custom_config[combo_box.focused_input].is_select)
-					{
-						$('input#'+combo_box.focused_input).parent().find('span>i').addClass('up');
-					}
-				}
-				else
-				{
-					combo_box.drop_down.pointer = 0;
-				}
-			}
-		}, 100);
-	},
-	stepThroughDropDownList : function()
-	{
-		if (this.drop_down.length)
-		{
-			var active_list_item = this.config.active_list_item;
-
-			if (this.custom_config[this.focused_input].hasOwnProperty('active_list_item'))
-			{
-				active_list_item = this.custom_config[this.focused_input].active_list_item;
-			}
-
-			if (this.drop_down.length === 1)
-			{
-				this.drop_down.pointer = 1;
-				this.drop_down.selector[0].find('li#pointer-1').addClass(active_list_item);
-			}
-			else
-			{
-				this.drop_down.selector.children().removeClass(active_list_item);// optgroup rework
-
-				let pointer_position;
-
-				if (this.events.press_down_arrow)
-				{
-					if ([0, this.drop_down.length].includes(this.drop_down.pointer))
-					{
-						pointer_position = 1;
-					}
-					else
-					{
-						pointer_position = this.drop_down.pointer + 1;
-					}
-				}
-
-				if (this.events.press_up_arrow)
-				{
-					if ([0, 1].includes(this.drop_down.pointer))
-					{
-						pointer_position = this.drop_down.length;
-					}
-					else
-					{
-						pointer_position = this.drop_down.pointer - 1;
-					}
-				}
-
-				this.drop_down.pointer = pointer_position;
-
-				let parent_element_height = this.drop_down.selector[0].clientHeight,
-					element = this.drop_down.selector.find('li#pointer-'+pointer_position);
-
-				element.addClass(active_list_item);
-
-				let offset_top = element[0].offsetTop;
-
-				if (offset_top > parent_element_height)
-				{
-					this.drop_down.selector[0].scrollTop = offset_top + element[0].offsetHeight - parent_element_height;
-				}
-				else
-				{
-					this.drop_down.selector[0].scrollTop = 0;
-				}
-			}
-		}
-	},
-	removeDropDownList : function()
-	{
-		$('div.combo-box').find('span>i').removeClass('up');
-
-		this.drop_down.pointer = 0;
-
-		var combo_box_input = [];
-
-		for (let i of this.input_fields)
-		{
-			combo_box_input.push(`${i}+ul`);
-		}
-
-		$(combo_box_input.join(',')).remove();
-	},
-	setOrientation : function()
-	{
-		if (combo_box.focused_input.length)
-		{
-			if ($(`input#${combo_box.focused_input}`).length && $(`ul#${combo_box.focused_input}`).length)
-			{
-				let window_height = parseInt($(window).height(), 10),
-					element_top = parseInt($(`input#${combo_box.focused_input}`).offset().top, 10) + 30;
-
-				let ul_position = 'down';
-
-				if (window_height - (element_top - window.scrollY) <= $(`ul#${combo_box.focused_input}`)[0].offsetHeight)
-				{
-					ul_position = 'up';
-				}
-
-				$(`ul#${combo_box.focused_input}`).removeClass('down up').addClass(ul_position).css('visibility', 'visible');
-			}
-		}
-	},
-	setOrientationChange : function()
-	{
-		$(window).on('resize', function()
-		{
-			combo_box.setOrientation();
-		});
-	}(),
-	keyup : function()
-	{
-		$(document).on('keyup', function(event)
-		{
-			var focused_form_element_id = $('input:focus').attr('id');// focused input
-
-			if (focused_form_element_id === undefined || $.inArray(`input#${focused_form_element_id}`, combo_box.input_fields) < 0)// includes array
-			{
-				return;
-			}
-
-			let system_keys = [
-				16,// Shift
-				17,// Control
-				18,// Alt
-				19,// Pause
-				20,// CapsLock
-				27,// Escape
-				33,// PageUp
-				34,// PageDown
-				35,// End
-				36,// Home
-				37,// ArrowLeft
-				38,// ArrowUp
-				39,// ArrowRight
-				40,// ArrowDown
-				45,// Insert
-				91,// OS
-				144,// NumLock
-				145,// ScrollLock
-			];
-			
-			if (system_keys.includes(event.which))
-			{
-				return;
-			}
-			
-			let review_allowed_keys = true,
-				remove_keys = [
-					8,// Backspace
-					46,// Delete
-				];
-			
-			if (remove_keys.includes(event.which))
-			{
-				review_allowed_keys = false;
-			}
-console.log(event.which, event.originalEvent.key);
-			if (review_allowed_keys)
-			{
-				let symbol = event.originalEvent.key,
-					letters = [...'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz AаБбВвГгДдEеЖжЗзИиЙйКкЛлМмНнOоПпРрСсТтУуФфХхЦцЧчШшЩщЪъЬьЮюЯя'],
-					numbers = [...'0123456789'],
-					entities = [...'@#$%&'],
-					punctuation = [...'.,\'":;!?'],
-					arithmetic = [...'+-*/<>()[]{}'],
-					programming = [...'^~\\|'];
-	
-				console.log(letters, numbers, entities, punctuation, arithmetic, programming);
-			}
-		return;
-			var allowed_keys = character_keys,
-				are_mathematics_symbols_allowed = combo_box.config.are_mathematics_symbols_allowed,
-				are_punctuation_symbols_allowed = combo_box.config.are_punctuation_symbols_allowed;
-
-			if (combo_box.custom_config[combo_box.focused_input].hasOwnProperty('are_mathematics_symbols_allowed'))
-			{
-				are_mathematics_symbols_allowed = combo_box.custom_config[combo_box.focused_input].are_mathematics_symbols_allowed;
-			}
-
-			if (combo_box.custom_config[combo_box.focused_input].hasOwnProperty('are_punctuation_symbols_allowed'))
-			{
-				are_punctuation_symbols_allowed = combo_box.custom_config[combo_box.focused_input].are_punctuation_symbols_allowed;
-			}
-
-			if (are_mathematics_symbols_allowed)
-			{
-				allowed_keys = allowed_keys.concat(mathematics_keys);
-			}
-
-			if (are_punctuation_symbols_allowed)
-			{
-				allowed_keys = allowed_keys.concat(punctuation_keys);
-			}
-
-			if ($.inArray(event.which, allowed_keys) >= 0)
-			{
-				var minimum_input_length = combo_box.config.minimum_input_length,
-					input_length = $('input#'+combo_box.focused_input).val().trim().length;
-
-				if (combo_box.custom_config[combo_box.focused_input].hasOwnProperty('minimum_input_length'))
-				{
-					minimum_input_length = combo_box.custom_config[combo_box.focused_input].minimum_input_length;
-				}
-
-				if (input_length >= minimum_input_length)
-				{
-					combo_box.input_characters = $('input#'+combo_box.focused_input).val().trim();
-
-					if (combo_box.custom_config[combo_box.focused_input].hasOwnProperty('is_data_ready'))
-					{
-						if (!combo_box.custom_config[combo_box.focused_input].is_data_ready)
-						{
-							console.log(combo_box.custom_config[combo_box.focused_input]);
-							combo_box.getOptionsFromDatabase(combo_box.custom_config[combo_box.focused_input].callback());
-						}
-					}
-
-					combo_box.setDropDownList();
-				}
-				else
-				{
-					combo_box.removeDropDownList();
-				}
-			}
-		});
-	}(),
-	keydown : function()
-	{
-		$(document).on('keydown', function(event)
-		{
-			if (event.which === 13)
-			{
-				if (combo_box.drop_down.pointer !== 0)
-				{
-					var list_item = combo_box.drop_down.selector.find('li#pointer-'+combo_box.drop_down.pointer),
-						list_item_text = list_item.text(),
-						list_item_data_value = list_item.data('value');
-// more data keys
-					$('input#'+combo_box.focused_input).val(list_item_text).attr({'value' : list_item_text, 'data-value' : list_item_data_value});
-					$('input#'+combo_box.focused_input).data('value', list_item_data_value).trigger('change');
-
-					combo_box.removeDropDownList();
-				}
-
-				return;
-			}
-
-			if (event.which === 38)
-			{
-				combo_box.events.press_up_arrow = true;
-				combo_box.events.press_down_arrow = false;
-				combo_box.stepThroughDropDownList();
-
-				return;
-			}
-
-			if (event.which === 40)
-			{
-				combo_box.events.press_down_arrow = true;
-				combo_box.events.press_up_arrow = false;
-				combo_box.stepThroughDropDownList();
-
-				return;
-			}
-
-			if (event.which === 27)
-			{
-				combo_box.removeDropDownList();
-			}
-		});
-	}()
-};
-
-var json_data = '[{"key":1,"value":"testova","extra":"asdasdsd","test":"asdasdsd"},{"key":2,"value":"test"},{"key":3,"value":"drug test"},{"key":4,"value":"sofia"},{"key":5,"value":"sofia oblast","extra":"asdasdsd","test":"asdasdsd"}]';
+var json_data = `[
+	{"group":"dev","value":1,"text":"testova","extra":"as####dasdsd","test":"asda44444sdsd"},
+	{"group":"dev","value":2,"text":"test"},
+	{"group":"dev","value":3,"text":"drug test"},
+	{"value":4,"text":"sofia"},
+	{"value":5,"text":"sofia oblast","extra":"asdaextrasdsd","test":"asdatestsdsd"}
+]`;
 var combo_box_init = {
 	'js-combo-box-cars' : {
+		are_arithmetic_symbols_allowed : true,
 	},
 	'js-combo-box-languages' : {
 		minimum_input_length : 1,
+		are_arithmetic_symbols_allowed : true,
 		//active_list_item : 'custom'
 	},
 	'js-combo-box-cities' : {
 		minimum_input_length : 2,
+		are_programming_symbols_allowed : true,
 		json : {
 			is_data_ready : true,
 			data : JSON.parse(json_data)
@@ -1834,9 +1047,13 @@ var combo_box_init = {
 
 				setTimeout(function()
 				{
-					object.data = JSON.parse('[{"key":1,"value":"jameson"}, {"key":2,"value":"jack daniels"}, {"key":1,"value":"johnny walker"}]');
+					object.data = JSON.parse(`[
+											 {"value":1,"text":"jameson"},
+											 {"value":2,"text":"jack daniels"},
+											 {"value":3,"text":"johnny walker"}
+											 ]`);
 					object.is_data_ready = true;
-				}, 1000);
+				}, 100);
 
 				return object;
 			}
