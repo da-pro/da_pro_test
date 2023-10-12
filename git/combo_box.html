@@ -11,8 +11,8 @@ var combo_box = {
 	},
 	list : {
 		html : null,
-		step : 0,
-		size : 0
+		size : 0,
+		step : 0
 	},
 	press_event : {
 		up : false,
@@ -58,6 +58,7 @@ var combo_box = {
 
 					that.data[id] = {};
 					that.config.inherit[id] = {
+						is_data_ready : false,
 						is_select : false
 					};
 
@@ -147,28 +148,37 @@ var combo_box = {
 
 					that.config.inherit[id].allowed_symbols = new RegExp('[^'+that.escapeString(allowed_symbols)+']', 'g');
 
+					that.config.inherit[id].minimum_input_length = that.config.initial.minimum_input_length;
+					
 					if (object[id].hasOwnProperty('minimum_input_length'))
 					{
 						if (typeof object[id].minimum_input_length === 'number')
 						{
-							if (that.config.initial.minimum_input_length < object[id].minimum_input_length)
+							if (that.config.inherit[id].minimum_input_length < object[id].minimum_input_length)
 							{
 								that.config.inherit[id].minimum_input_length = object[id].minimum_input_length;
 							}
 						}
 					}
 
+					that.config.inherit[id].active_list = that.config.initial.active_list;
+					
 					if (object[id].hasOwnProperty('active_list'))
 					{
 						if (typeof object[id].active_list === 'string')
 						{
 							if (css_class_name_pattern.test(object[id].active_list))
 							{
-								that.config.inherit[id].active_list = object[id].active_list;
+								if (that.config.inherit[id].active_list !== object[id].active_list)
+								{
+									that.config.inherit[id].active_list = object[id].active_list;
+								}
 							}
 						}
 					}
 
+					that.config.inherit[id].active_list_item = that.config.initial.active_list_item;
+					
 					if (object[id].hasOwnProperty('active_list_item'))
 					{
 						if (typeof object[id].active_list_item === 'string')
@@ -196,7 +206,7 @@ var combo_box = {
 								}
 								else
 								{
-									that.config.inherit[id].is_data_ready = false;
+									that.config.inherit[id].is_called = false;
 									that.config.inherit[id].callback = object[id].json.data;
 								}
 							}
@@ -212,6 +222,7 @@ var combo_box = {
 
 							that.data[id] = that.getOptionsFromSelect(selector.children());
 
+							that.config.inherit[id].is_data_ready = true;
 							that.config.inherit[id].is_select = true;
 						}
 					}
@@ -236,8 +247,8 @@ var combo_box = {
 					}
 				}
 			});
-
-			$('body').on('focus', that.staging.input.join(','), function()
+			
+			$(that.staging.input.join(',')).on('focus', function()
 			{
 				let id = this.id;
 
@@ -257,9 +268,24 @@ var combo_box = {
 
 				that.setList();
 			});
+			
+			$('input, textarea, select').on('focus', function()
+			{
+				if (this.tagName.toLowerCase() === 'input')
+				{
+					if (!that.staging.input.includes(`input#${this.id}`))
+					{
+						that.unsetList();
+					}
+				}
+				else
+				{
+					that.unsetList();
+				}
+			});
 		}
 
-		$('body').on('click focus', `ul[id^=${that.prefix}]>li:not(.header):not(.group)`, function()
+		$('body').on('click', `ul[id^=${that.prefix}]>li:not(.header):not(.group)`, function()
 		{
 			that.setInputData(this);
 		});
@@ -387,20 +413,14 @@ var combo_box = {
 	{
 		let that = this,
 			id = that.staging.id,
-			minimum_input_length = that.config.initial.minimum_input_length;
-
-		if (that.config.inherit[id].hasOwnProperty('minimum_input_length'))
-		{
-			minimum_input_length = that.config.inherit[id].minimum_input_length;
-		}
-
-		let list = $('<ul>').attr({'tabindex' : -1, 'class' : 'combo-box', 'id' : id}).css('visibility', 'hidden');
-
+			minimum_input_length = that.config.inherit[id].minimum_input_length,
+			list = $('<ul>').attr({'tabindex' : -1, 'class' : 'combo-box', 'id' : id}).css('visibility', 'hidden');
+			
 		if ($(`ul#${id}`).length)
 		{
-			list = $(`ul#${id}`);
+			list = $(`ul#${id}`).html('');
 		}
-
+		
 		if (minimum_input_length > that.staging.value.length && !that.config.inherit[id].is_select)
 		{
 			let search_message = (minimum_input_length > 1) ? that.strings.search_message : that.strings.search_message.slice(0, -1);
@@ -415,33 +435,35 @@ var combo_box = {
 
 			return;
 		}
-
+		
+		if (!that.config.inherit[id].is_data_ready && !that.config.inherit[id].is_called)
+		{
+			that.getOptionsFromDatabase(that.config.inherit[id].callback());
+		}
+		
 		let set_interval = setInterval(function()
 		{
 			if (that.is_data_ready)
 			{
 				clearInterval(set_interval);
-
-				if (that.config.inherit[id].hasOwnProperty('active_list'))
+				
+				if (!that.config.inherit[id].is_data_ready)
 				{
-					list.addClass(that.config.inherit[id].active_list);
+					that.config.inherit[id].is_called = false;
 				}
-
+				
+				list.addClass(that.config.inherit[id].active_list);
+				
 				let object = that.data[id],
 					match_list_items = {},
 					unmatch_list_items = {},
 					step = 0,
 					counter = 0,
 					pattern = new RegExp(that.escapeString(that.staging.value), 'gi'),
-					active_list_item = that.config.initial.active_list_item,
+					active_list_item = that.config.inherit[id].active_list_item,
 					message = that.strings.empty_result,
 					list_header = `<li class="header warning">${message}</li>`,
 					list_items = '';
-
-				if (that.config.inherit[id].hasOwnProperty('active_list_item'))
-				{
-					active_list_item = that.config.inherit[id].active_list_item;
-				}
 
 				for (let i in object)
 				{
@@ -663,15 +685,10 @@ var combo_box = {
 			size = that.list.size,
 			step = that.list.step;
 
-		if (size)
+		if (size > 0)
 		{
-			let active_list_item = that.config.initial.active_list_item;
-
-			if (that.config.inherit[id].hasOwnProperty('active_list_item'))
-			{
-				active_list_item = that.config.inherit[id].active_list_item;
-			}
-
+			let active_list_item = that.config.inherit[id].active_list_item;
+			
 			html.children().removeClass(active_list_item);
 
 			let step_position;
@@ -830,30 +847,20 @@ var combo_box = {
 				$(`input#${id}`).val(value);
 			}
 
-			let minimum_input_length = that.config.initial.minimum_input_length,
-				input_length = value.length;
+			if (value.length >= that.config.inherit[id].minimum_input_length)
+			{
+				that.staging.value = value;
 
-				if (that.config.inherit[id].hasOwnProperty('minimum_input_length'))
+				if (!that.config.inherit[id].is_data_ready)
 				{
-					minimum_input_length = that.config.inherit[id].minimum_input_length;
+					that.config.inherit[id].is_called = true;
+					that.getOptionsFromDatabase(that.config.inherit[id].callback());
 				}
-
-				if (input_length >= minimum_input_length)
-				{
-					that.staging.value = value;
-
-					if (that.config.inherit[id].hasOwnProperty('is_data_ready'))
-					{
-						if (!that.config.inherit[id].is_data_ready)
-						{
-							that.getOptionsFromDatabase(that.config.inherit[id].callback());
-						}
-					}
-				}
-				else
-				{
-					that.staging.value = '';
-				}
+			}
+			else
+			{
+				that.staging.value = '';
+			}
 
 				that.setList();
 		});
