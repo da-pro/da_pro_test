@@ -223,7 +223,7 @@ var combo_box = {
 
 							that.config.inherit[id].is_select = true;
 							that.config.inherit[id].is_data_ready = true;
-							that.data[id] = that.getOptionsFromSelect(selector.children());
+							that.data[id] = that.getOptionsFromSelect(selector.children(), id);
 						}
 					}
 				}
@@ -344,7 +344,7 @@ var combo_box = {
 			}
 		}, 100);
 	},
-	getOptionsFromSelect : function(options_selector)
+	getOptionsFromSelect : function(options_selector, id)
 	{
 		let data = {},
 			counter = 0,
@@ -380,6 +380,18 @@ var combo_box = {
 					{
 						data[counter].data_combo_box = data_combo_box;
 					}
+					
+					if (this.selected)
+					{
+						let object = {
+							value : data[counter].text,
+							'data-value' : data[counter].value
+						};
+						
+						Object.assign(object, data_combo_box);
+						
+						$(`input#${id}`).attr(object).val(object.value);
+					}
 				});
 			}
 			else
@@ -405,6 +417,18 @@ var combo_box = {
 				if (Object.keys(data_combo_box).length)
 				{
 					data[counter].data_combo_box = data_combo_box;
+				}
+				
+				if (this.selected)
+				{
+					let object = {
+						value : data[counter].text,
+						'data-value' : data[counter].value
+					};
+					
+					Object.assign(object, data_combo_box);
+					
+					$(`input#${id}`).attr(object).val(object.value);
 				}
 			}
 		});
@@ -617,15 +641,24 @@ var combo_box = {
 				}
 				else
 				{
+					let list_item_counter = 0;
+					
 					list.children('.highlight').each(function()
 					{
+						++list_item_counter;
+						
 						if (that.staging.value.toLowerCase() === this.innerText.toLowerCase())
 						{
 							let step = this.id.split('-')[1];
-
+							
 							that.list.step = parseInt(step, 10);
 							that.list.html.find(`li#step-${step}`).addClass(active_list_item);
-
+							
+							return false;
+						}
+						
+						if (list_item_counter === 10)
+						{
 							return false;
 						}
 					});
