@@ -25,6 +25,7 @@ var combo_box = {
 			minimum_input_length : 1,
 			active_list : '',
 			active_list_item : 'active',
+			callback_function : '',
 			is_focused_value_selected : false,
 			are_letters_symbols_allowed : true,
 			are_numbers_symbols_allowed : true,
@@ -41,44 +42,6 @@ var combo_box = {
 		found_result : 'намерени %',
 		matched_result : 'съвпадения %'
 	},
-	construct : function()
-	{
-		$(function()
-		{
-			let that = combo_box;
-			
-			$('div.combo-box').on('click', function(event)
-			{
-				if (['span', 'i'].includes(event.target.nodeName.toLowerCase()))
-				{
-					let id = $(this).find('input').attr('id'),
-						is_collapse = $(this).find('span>i').hasClass('up');
-					
-					that.unsetList(true);
-					
-					if (!is_collapse)
-					{
-						$(`input#${id}`).focus();
-					}
-				}
-			});
-			
-			$('body').on('focus', 'input,textarea,select', function()
-			{
-				if (this.tagName.toLowerCase() === 'input')
-				{
-					if (!that.staging.input.includes(`input#${this.id}`))
-					{
-						that.unsetList(true);
-					}
-				}
-				else
-				{
-					that.unsetList(true);
-				}
-			});
-		});
-	}(),
 	init : function(object)
 	{
 		if (Object.keys(object).length)
@@ -148,7 +111,17 @@ var combo_box = {
 							}
 						}
 					}
-
+					
+					that.config.inherit[id].callback_function = that.config.initial.callback_function;
+					
+					if (object[id].hasOwnProperty('callback_function'))
+					{
+						if (typeof object[id].callback_function === 'string')
+						{
+							that.config.inherit[id].callback_function = object[id].callback_function;
+						}
+					}
+					
 					that.config.inherit[id].is_focused_value_selected = that.config.initial.is_focused_value_selected;
 
 					if (object[id].hasOwnProperty('is_focused_value_selected'))
@@ -289,8 +262,9 @@ var combo_box = {
 		
 		$('body').on('focus', `input#${id}`, function()
 		{
-			that.is_data_ready = that.config.inherit[id].is_data_ready;
+			that.unsetList(false);
 			
+			that.is_data_ready = that.config.inherit[id].is_data_ready;
 			that.staging.id = id;
 			that.staging.value = this.value.trimStart();
 
@@ -298,8 +272,7 @@ var combo_box = {
 			{
 				$(`input#${id}`).select();
 			}
-
-			that.unsetList(false);
+			
 			that.setList();
 		});
 	},
@@ -734,7 +707,14 @@ var combo_box = {
 		document.getElementsByTagName('input')[id].blur();
 
 		that.unsetList(false);
-
+		
+		if (that.config.inherit[id].callback_function.length)
+		{
+			let callback_function = new Function(that.config.inherit[id].callback_function);
+			
+			callback_function();
+		}
+		
 		setTimeout(function()
 		{
 			that.is_enter_ready = true;
@@ -804,6 +784,7 @@ var combo_box = {
 		$('div.combo-box').find('span>i').removeClass('up');
 		
 		this.is_enter_ready = is_enter_ready;
+		this.staging.id = '';
 		this.list.step = 0;
 	},
 	escapeString : function(string)
@@ -884,6 +865,44 @@ var combo_box = {
 		$(window).on('resize', function()
 		{
 			combo_box.setOrientation();
+		});
+	}(),
+	setUIEvents : function()
+	{
+		$(function()
+		{
+			let that = combo_box;
+			
+			$('div.combo-box').on('click', function(event)
+			{
+				if (['span', 'i'].includes(event.target.nodeName.toLowerCase()))
+				{
+					let id = $(this).find('input').attr('id'),
+						is_collapse = $(this).find('span>i').hasClass('up');
+					
+					that.unsetList(true);
+					
+					if (!is_collapse)
+					{
+						$(`input#${id}`).focus();
+					}
+				}
+			});
+			
+			$('body').on('focus', 'input,textarea,select', function()
+			{
+				if (this.tagName.toLowerCase() === 'input')
+				{
+					if (!that.staging.input.includes(`input#${this.id}`))
+					{
+						that.unsetList(true);
+					}
+				}
+				else
+				{
+					that.unsetList(true);
+				}
+			});
 		});
 	}(),
 	keyup : function()
@@ -997,9 +1016,12 @@ var combo_box = {
 
 			if (event.which === 27)
 			{
-				that.unsetList(true);
-
-				document.getElementsByTagName('input')[that.staging.id].blur();
+				if (that.staging.id.length)
+				{
+					document.getElementsByTagName('input')[that.staging.id].blur();
+					
+					that.unsetList(true);
+				}
 			}
 		});
 	}()
