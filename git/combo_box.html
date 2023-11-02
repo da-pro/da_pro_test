@@ -111,9 +111,9 @@ var combo_box = {
 							}
 						}
 					}
-					
+
 					that.config.inherit[id].callback_function = that.config.initial.callback_function;
-					
+
 					if (object[id].hasOwnProperty('callback_function'))
 					{
 						if (typeof object[id].callback_function === 'string')
@@ -121,7 +121,7 @@ var combo_box = {
 							that.config.inherit[id].callback_function = object[id].callback_function;
 						}
 					}
-					
+
 					that.config.inherit[id].is_focused_value_selected = that.config.initial.is_focused_value_selected;
 
 					if (object[id].hasOwnProperty('is_focused_value_selected'))
@@ -259,11 +259,11 @@ var combo_box = {
 	setFocus : function(id)
 	{
 		let that = this;
-		
+
 		$('body').on('focus', `input#${id}`, function()
 		{
 			that.unsetList(false);
-			
+
 			that.is_data_ready = that.config.inherit[id].is_data_ready;
 			that.staging.id = id;
 			that.staging.value = this.value.trimStart();
@@ -272,7 +272,7 @@ var combo_box = {
 			{
 				$(`input#${id}`).select();
 			}
-			
+
 			that.setList();
 		});
 	},
@@ -707,14 +707,14 @@ var combo_box = {
 		document.getElementsByTagName('input')[id].blur();
 
 		that.unsetList(false);
-		
+
 		if (that.config.inherit[id].callback_function.length)
 		{
 			let callback_function = new Function(that.config.inherit[id].callback_function);
-			
+
 			callback_function();
 		}
-		
+
 		setTimeout(function()
 		{
 			that.is_enter_ready = true;
@@ -782,7 +782,7 @@ var combo_box = {
 	{
 		$(this.staging.list.join(',')).remove();
 		$('div.combo-box').find('span>i').removeClass('up');
-		
+
 		this.is_enter_ready = is_enter_ready;
 		this.staging.id = '';
 		this.list.step = 0;
@@ -872,23 +872,23 @@ var combo_box = {
 		$(function()
 		{
 			let that = combo_box;
-			
+
 			$('div.combo-box').on('click', function(event)
 			{
 				if (['span', 'i'].includes(event.target.nodeName.toLowerCase()))
 				{
 					let id = $(this).find('input').attr('id'),
 						is_collapse = $(this).find('span>i').hasClass('up');
-					
+
 					that.unsetList(true);
-					
+
 					if (!is_collapse)
 					{
 						$(`input#${id}`).focus();
 					}
 				}
 			});
-			
+
 			$('body').on('focus', 'input,textarea,select', function()
 			{
 				if (this.tagName.toLowerCase() === 'input')
@@ -925,6 +925,7 @@ var combo_box = {
 				38,// ArrowUp
 				39,// ArrowRight
 				40,// ArrowDown
+				44,// PrintScreen
 				45,// Insert
 				91,// OS
 				144,// NumLock
@@ -986,40 +987,40 @@ var combo_box = {
 		{
 			let that = combo_box;
 
-			if (event.which === 13)
+			if (that.list.step !== 0)
 			{
-				if (that.list.step !== 0)
+				if (event.which === 13)
 				{
 					that.setInputData(document.getElementsByTagName('li')[`step-${that.list.step}`]);
+
+					return;
+				}
+			}
+
+			if (that.staging.id.length)
+			{
+				if (event.which === 38)
+				{
+					that.press_event.up = true;
+					that.press_event.down = false;
+					that.stepThroughList();
+
+					return;
 				}
 
-				return;
-			}
+				if (event.which === 40)
+				{
+					that.press_event.down = true;
+					that.press_event.up = false;
+					that.stepThroughList();
 
-			if (event.which === 38)
-			{
-				that.press_event.up = true;
-				that.press_event.down = false;
-				that.stepThroughList();
+					return;
+				}
 
-				return;
-			}
-
-			if (event.which === 40)
-			{
-				that.press_event.down = true;
-				that.press_event.up = false;
-				that.stepThroughList();
-
-				return;
-			}
-
-			if (event.which === 27)
-			{
-				if (that.staging.id.length)
+				if (event.which === 27)
 				{
 					document.getElementsByTagName('input')[that.staging.id].blur();
-					
+
 					that.unsetList(true);
 				}
 			}
