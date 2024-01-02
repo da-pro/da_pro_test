@@ -26,7 +26,8 @@ var combo_box = {
 			active_list : '',
 			active_list_item : 'active',
 			callback_function : '',
-			is_focused_value_selected : false,
+			is_focused_value_selected : true,
+			are_symbols_restricted : true,
 			are_letters_symbols_allowed : true,
 			are_numbers_symbols_allowed : true,
 			are_arithmetic_symbols_allowed : false,
@@ -136,12 +137,24 @@ var combo_box = {
 					}
 
 					let allowed_symbols = '',
+						are_symbols_restricted = that.config.initial.are_symbols_restricted,
 						are_letters_symbols_allowed = that.config.initial.are_letters_symbols_allowed,
 						are_numbers_symbols_allowed = that.config.initial.are_numbers_symbols_allowed,
 						are_arithmetic_symbols_allowed = that.config.initial.are_arithmetic_symbols_allowed,
 						are_punctuation_symbols_allowed = that.config.initial.are_punctuation_symbols_allowed,
 						are_programming_symbols_allowed = that.config.initial.are_programming_symbols_allowed,
 						are_entities_symbols_allowed = that.config.initial.are_entities_symbols_allowed;
+
+					if (object[id].hasOwnProperty('are_symbols_restricted'))
+					{
+						if (typeof object[id].are_symbols_restricted === 'boolean')
+						{
+							if (are_symbols_restricted !== object[id].are_symbols_restricted)
+							{
+								are_symbols_restricted = !are_symbols_restricted;
+							}
+						}
+					}
 
 					if (object[id].hasOwnProperty('are_letters_symbols_allowed'))
 					{
@@ -209,14 +222,21 @@ var combo_box = {
 						}
 					}
 
-					allowed_symbols += are_letters_symbols_allowed ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя' : '';
-					allowed_symbols += are_numbers_symbols_allowed ? '0123456789' : '';
-					allowed_symbols += are_arithmetic_symbols_allowed ? '+-*/<>()[]{}' : '';
-					allowed_symbols += are_punctuation_symbols_allowed ? `.,'":;!?` : '';
-					allowed_symbols += are_programming_symbols_allowed ? '^~|@#\\' : '';
-					allowed_symbols += are_entities_symbols_allowed ? '$%&' : '';
+					if (are_symbols_restricted)
+					{
+						allowed_symbols += are_letters_symbols_allowed ? 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя' : '';
+						allowed_symbols += are_numbers_symbols_allowed ? '0123456789' : '';
+						allowed_symbols += are_arithmetic_symbols_allowed ? '+-*/<>()[]{}' : '';
+						allowed_symbols += are_punctuation_symbols_allowed ? `.,'":;!?` : '';
+						allowed_symbols += are_programming_symbols_allowed ? '^~|@#\\' : '';
+						allowed_symbols += are_entities_symbols_allowed ? '$%&' : '';
 
-					that.config.inherit[id].allowed_symbols = new RegExp('[^'+that.escapeString(allowed_symbols)+']', 'g');
+						that.config.inherit[id].allowed_symbols = new RegExp('[^'+that.escapeString(allowed_symbols)+']', 'g');
+					}
+					else
+					{
+						that.config.inherit[id].allowed_symbols = new RegExp('[.*]', 'g');
+					}
 
 					if (object[id].hasOwnProperty('json'))
 					{
@@ -247,7 +267,7 @@ var combo_box = {
 
 							that.config.inherit[id].is_select = true;
 							that.config.inherit[id].is_data_ready = true;
-							that.data[id] = that.getOptionsFromSelect(selector.children(), id);
+							that.data[id] = that.getOptionsFromSelect(id);
 						}
 					}
 
@@ -337,9 +357,10 @@ var combo_box = {
 			}
 		}, 100);
 	},
-	getOptionsFromSelect : function(options_selector, id)
+	getOptionsFromSelect : function(id)
 	{
-		let data = {},
+		let options_selector = $(`select#${id}`).children(),
+			data = {},
 			counter = 0,
 			pattern = new RegExp('^data');
 
@@ -873,7 +894,7 @@ var combo_box = {
 		{
 			let that = combo_box;
 
-			$('div.combo-box').on('click', function(event)
+			$('body').on('click', 'div.combo-box', function(event)
 			{
 				if (['span', 'i'].includes(event.target.nodeName.toLowerCase()))
 				{
