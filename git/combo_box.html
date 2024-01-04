@@ -230,13 +230,9 @@ var combo_box = {
 						allowed_symbols += are_punctuation_symbols_allowed ? `.,'":;!?` : '';
 						allowed_symbols += are_programming_symbols_allowed ? '^~|@#\\' : '';
 						allowed_symbols += are_entities_symbols_allowed ? '$%&' : '';
+					}
 
-						that.config.inherit[id].allowed_symbols = new RegExp('[^'+that.escapeString(allowed_symbols)+']', 'g');
-					}
-					else
-					{
-						that.config.inherit[id].allowed_symbols = new RegExp('[.*]', 'g');
-					}
+					that.config.inherit[id].allowed_symbols = are_symbols_restricted ? new RegExp('[^'+that.escapeString(allowed_symbols)+']', 'g') : new RegExp('[.*]', 'g');
 
 					if (object[id].hasOwnProperty('json'))
 					{
@@ -359,12 +355,11 @@ var combo_box = {
 	},
 	getOptionsFromSelect : function(id)
 	{
-		let options_selector = $(`select#${id}`).children(),
-			data = {},
+		let data = {},
 			counter = 0,
 			pattern = new RegExp('^data');
 
-		options_selector.each(function()
+		$(`select#${id}`).children().each(function()
 		{
 			if ($(this)[0].tagName.toLowerCase() === 'optgroup')
 			{
